@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # SQL Server riêng cho Student Service
+  student-sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: student-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Student@Pass123
+      - MSSQL_PID=Developer
+    ports:
+      - "1434:1433"
+    volumes:
+      - student-sqlserver-data:/var/opt/mssql
+    networks:
+      - training-center-net
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Student@Pass123" -C -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # Student & Attendance Service
+  student-service:
+    build: .
+    container_name: student-service
+    ports:
+      - "5002:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ConnectionStrings__DefaultConnection=Server=student-sqlserver;Database=StudentDB;User=sa;Password=Student@Pass123;TrustServerCertificate=true
+      - JwtSettings__Secret=TrainingCenterSharedSecretKey2024!@#
+      - ServiceUrls__CourseService=http://course-service:8080
+    depends_on:
+      student-sqlserver:
+        condition: service_healthy
+    networks:
+      - training-center-net
+    restart: unless-stopped
+
+volumes:
+  student-sqlserver-data:
+
+networks:
+  training-center-net:
+    name: training-center-net
+    driver: bridge

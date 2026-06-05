@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  # API Gateway
+  api-gateway:
+    build: .
+    container_name: api-gateway
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - JwtSettings__Secret=TrainingCenterSharedSecretKey2024!@#
+    networks:
+      - training-center-net
+    restart: unless-stopped
+
+networks:
+  training-center-net:
+    name: training-center-net
+    driver: bridge

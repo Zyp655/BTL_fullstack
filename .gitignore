@@ -1,0 +1,50 @@
+# OS files
+.DS_Store
+Thumbs.db
+*.db
+
+# Build files (C# / .NET)
+**/bin/
+**/obj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+bld/
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.userprefs
+*.sln.DotSettings.user
+
+# Visual Studio Code
+.vscode/*
+!.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/settings.json
+
+# Node.js
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm/
+
+# Frontend builds
+**/dist/
+**/dist-ssr/
+.parcel-cache/
+.cache/
+
+# Local env files
+.env*.local
