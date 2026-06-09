@@ -1,21 +1,24 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
-using PaymentService.Data;
 using PaymentService.DTOs;
+using PaymentService.Features.Users.Commands;
+using PaymentService.Features.Users.Queries;
+using MediatR;
+using Asp.Versioning;
 
 namespace PaymentService.Controllers;
 
+[ApiVersion("1.0")]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [Authorize(Roles = "Admin")]
 public class UsersController : ControllerBase
 {
-    private readonly PaymentDbContext _context;
+    private readonly IMediator _mediator;
 
-    public UsersController(PaymentDbContext context)
+    public UsersController(IMediator mediator)
     {
-        _context = context;
+        _mediator = mediator;
     }
 
     /// <summary>
@@ -29,44 +32,8 @@ public class UsersController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
-        var query = _context.Users.AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(search))
-            query = query.Where(u => u.FullName.Contains(search) || u.Username.Contains(search) || (u.Email != null && u.Email.Contains(search)));
-
-        if (!string.IsNullOrWhiteSpace(role))
-            query = query.Where(u => u.Role == role);
-
-        if (isActive.HasValue)
-            query = query.Where(u => u.IsActive == isActive.Value);
-
-        var totalCount = await query.CountAsync();
-
-        var items = await query
-            .OrderByDescending(u => u.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .Select(u => new UserDto
-            {
-                UserId = u.UserId,
-                Username = u.Username,
-                FullName = u.FullName,
-                Email = u.Email,
-                Phone = u.Phone,
-                Role = u.Role,
-                IsActive = u.IsActive,
-                CreatedAt = u.CreatedAt,
-                UpdatedAt = u.UpdatedAt
-            })
-            .ToListAsync();
-
-        return Ok(new PagedResult<UserDto>
-        {
-            Items = items,
-            TotalCount = totalCount,
-            Page = page,
-            PageSize = pageSize
-        });
+        var result = await _mediator.Send(new GetUsersQuery(search, role, isActive, page, pageSize));
+        return Ok(result);
     }
 
     /// <summary>
@@ -75,54 +42,25 @@ public class UsersController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<UserDto>> GetUser(int id)
     {
-        var user = await _context.Users.FindAsync(id);
+        var user = await _mediator.Send(new GetUserByIdQuery(id));
         if (user == null)
             return NotFound(new { message = "Không tìm thấy người dùng" });
 
-        return Ok(new UserDto
-        {
-            UserId = user.UserId,
-            Username = user.Username,
-            FullName = user.FullName,
-            Email = user.Email,
-            Phone = user.Phone,
-            Role = user.Role,
-            IsActive = user.IsActive,
-            CreatedAt = user.CreatedAt,
-            UpdatedAt = user.UpdatedAt
-        });
+        return Ok(user);
     }
 
     /// <summary>
     /// Cập nhật user
     /// </summary>
     [HttpPut("{id}")]
-    public async Task<ActionResult<UserDto>> UpdateUser(int id, UpdateUserDto dto)
+    public async Task<ActionResult<UserDto>> UpdateUser(int id, UpdateUserCommand command)
     {
-        var user = await _context.Users.FindAsync(id);
-        if (user == null)
+        command = command with { Id = id };
+        var result = await _mediator.Send(command);
+        if (result == null)
             return NotFound(new { message = "Không tìm thấy người dùng" });
 
-        user.FullName = dto.FullName;
-        user.Email = dto.Email;
-        user.Phone = dto.Phone;
-        user.Role = dto.Role;
-        user.UpdatedAt = DateTime.UtcNow;
-
-        await _context.SaveChangesAsync();
-
-        return Ok(new UserDto
-        {
-            UserId = user.UserId,
-            Username = user.Username,
-            FullName = user.FullName,
-            Email = user.Email,
-            Phone = user.Phone,
-            Role = user.Role,
-            IsActive = user.IsActive,
-            CreatedAt = user.CreatedAt,
-            UpdatedAt = user.UpdatedAt
-        });
+        return Ok(result);
     }
 
     /// <summary>
@@ -131,15 +69,22 @@ public class UsersController : ControllerBase
     [HttpPut("{id}/toggle-active")]
     public async Task<IActionResult> ToggleActive(int id)
     {
-        var user = await _context.Users.FindAsync(id);
-        if (user == null)
+        var success = await _mediator.Send(new ToggleActiveCommand(id));
+        if (!success)
             return NotFound(new { message = "Không tìm thấy người dùng" });
 
-        user.IsActive = !user.IsActive;
-        user.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
+        var user = await _mediator.Send(new GetUserByIdQuery(id));
+        return Ok(new { message = user!.IsActive ? "Đã mở khóa tài khoản" : "Đã khóa tài khoản", isActive = user.IsActive });
+    }
 
-        return Ok(new { message = user.IsActive ? "Đã mở khóa tài khoản" : "Đã khóa tài khoản", isActive = user.IsActive });
+    /// <summary>
+    /// Lấy thống kê số lượng tài khoản theo vai trò
+    /// </summary>
+    [HttpGet("stats")]
+    public async Task<ActionResult<UserStatsDto>> GetUserStats()
+    {
+        var stats = await _mediator.Send(new GetUserStatsQuery());
+        return Ok(stats);
     }
 
     /// <summary>
@@ -149,22 +94,7 @@ public class UsersController : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<List<UserDto>>> GetTeachers()
     {
-        var teachers = await _context.Users
-            .Where(u => u.Role == "GiaoVien" && u.IsActive)
-            .Select(u => new UserDto
-            {
-                UserId = u.UserId,
-                Username = u.Username,
-                FullName = u.FullName,
-                Email = u.Email,
-                Phone = u.Phone,
-                Role = u.Role,
-                IsActive = u.IsActive,
-                CreatedAt = u.CreatedAt,
-                UpdatedAt = u.UpdatedAt
-            })
-            .ToListAsync();
-
-        return Ok(teachers);
+        var result = await _mediator.Send(new GetUsersQuery(Search: null, Role: "GiaoVien", IsActive: true, Page: 1, PageSize: 9999));
+        return Ok(result.Items);
     }
 }

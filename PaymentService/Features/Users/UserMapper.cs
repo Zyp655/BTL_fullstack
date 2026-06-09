@@ -1,0 +1,20 @@
+using PaymentService.DTOs;
+using PaymentService.Models;
+
+namespace PaymentService.Features.Users;
+
+public static class UserMapper
+{
+    public static UserDto MapToDto(User u) => new()
+    {
+        UserId = u.UserId,
+        Username = u.Username,
+        FullName = u.FullName,
+        Email = u.Email,
+        Phone = u.Phone,
+        Role = u.Role,
+        IsActive = u.IsActive,
+        CreatedAt = u.CreatedAt,
+        UpdatedAt = u.UpdatedAt
+    };
+}

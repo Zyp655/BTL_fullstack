@@ -31,7 +31,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
       - ConnectionStrings__DefaultConnection=Server=payment-sqlserver;Database=PaymentDB;User=sa;Password=Payment@Pass123;TrustServerCertificate=true
-      - JwtSettings__Secret=TrainingCenterSharedSecretKey2024!@#
+      - JwtSettings__Secret=TrainingCenterSharedSecretKey2024!@#$%^&*()_+
       - ServiceUrls__CourseService=http://course-service:8080
       - ServiceUrls__StudentService=http://student-service:8080
     depends_on:

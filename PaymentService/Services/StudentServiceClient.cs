@@ -1,6 +1,6 @@
 namespace PaymentService.Services;
 
-public class StudentServiceClient
+public class StudentServiceClient : IStudentServiceClient
 {
     private readonly HttpClient _httpClient;
 
@@ -13,7 +13,7 @@ public class StudentServiceClient
     {
         try
         {
-            var response = await _httpClient.GetAsync($"/api/students/by-user/{userId}");
+            var response = await _httpClient.GetAsync($"/api/v1/students/by-user/{userId}");
             if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadFromJsonAsync<StudentInfoDto>();
@@ -30,7 +30,7 @@ public class StudentServiceClient
     {
         try
         {
-            var response = await _httpClient.GetAsync($"/api/enrollments/class/{classId}/students");
+            var response = await _httpClient.GetAsync($"/api/v1/enrollments/class/{classId}/students");
             if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadFromJsonAsync<List<StudentInfoDto>>() ?? new();

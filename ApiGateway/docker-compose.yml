@@ -9,7 +9,7 @@ services:
       - "5000:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
-      - JwtSettings__Secret=TrainingCenterSharedSecretKey2024!@#
+      - JwtSettings__Secret=TrainingCenterSharedSecretKey2024!@#$%^&*()_+
     networks:
       - training-center-net
     restart: unless-stopped

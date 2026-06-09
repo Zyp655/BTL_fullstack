@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace PaymentService.DTOs;
 
 // ===== Auth DTOs =====
@@ -15,6 +17,15 @@ public class RegisterDto
     public string? Email { get; set; }
     public string? Phone { get; set; }
     public string Role { get; set; } = "HocVien"; // Admin, GiaoVien, HocVien
+}
+
+public class SignUpDto
+{
+    public string Username { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public string FullName { get; set; } = string.Empty;
+    public string? Email { get; set; }
+    public string? Phone { get; set; }
 }
 
 public class LoginResponseDto
@@ -49,6 +60,25 @@ public class UpdateUserDto
     public string? Email { get; set; }
     public string? Phone { get; set; }
     public string Role { get; set; } = "HocVien";
+}
+
+public class UpdateProfileDto
+{
+    public string FullName { get; set; } = string.Empty;
+    public string? Email { get; set; }
+    public string? Phone { get; set; }
+}
+
+public class ForgotPasswordDto
+{
+    public string Email { get; set; } = string.Empty;
+}
+
+public class ResetPasswordWithOtpDto
+{
+    public string Email { get; set; } = string.Empty;
+    public string Otp { get; set; } = string.Empty;
+    public string NewPassword { get; set; } = string.Empty;
 }
 
 // ===== Payment DTOs =====
@@ -137,3 +167,43 @@ public class PagedResult<T>
     public int PageSize { get; set; }
     public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
 }
+
+// ===== Sepay Webhook DTO =====
+public class SepayWebhookDto
+{
+    [JsonPropertyName("id")]
+    public long Id { get; set; }
+
+    [JsonPropertyName("gateway")]
+    public string Gateway { get; set; } = string.Empty;
+
+    [JsonPropertyName("transaction_date")]
+    public string? TransactionDate { get; set; }
+
+    [JsonPropertyName("account_number")]
+    public string AccountNumber { get; set; } = string.Empty;
+
+    [JsonPropertyName("amount_in")]
+    public decimal AmountIn { get; set; }
+
+    [JsonPropertyName("amount_out")]
+    public decimal AmountOut { get; set; }
+
+    [JsonPropertyName("code")]
+    public string Code { get; set; } = string.Empty; // Holds transfer syntax/invoice code (e.g. "PaymentId 4")
+
+    [JsonPropertyName("transaction_content")]
+    public string TransactionContent { get; set; } = string.Empty;
+
+    [JsonPropertyName("reference_number")]
+    public string ReferenceNumber { get; set; } = string.Empty;
+}
+
+public class UserStatsDto
+{
+    public int TotalCount { get; set; }
+    public int AdminCount { get; set; }
+    public int TeacherCount { get; set; }
+    public int StudentCount { get; set; }
+}
+

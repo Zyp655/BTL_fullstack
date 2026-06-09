@@ -1,22 +1,27 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
-using PaymentService.Data;
 using PaymentService.DTOs;
-using PaymentService.Models;
+using PaymentService.Features.Payments.Commands;
+using PaymentService.Features.Payments.Queries;
+using MediatR;
+using Asp.Versioning;
+using Microsoft.Extensions.Configuration;
 
 namespace PaymentService.Controllers;
 
+[ApiVersion("1.0")]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [Authorize]
 public class PaymentsController : ControllerBase
 {
-    private readonly PaymentDbContext _context;
+    private readonly IMediator _mediator;
+    private readonly IConfiguration _configuration;
 
-    public PaymentsController(PaymentDbContext context)
+    public PaymentsController(IMediator mediator, IConfiguration configuration)
     {
-        _context = context;
+        _mediator = mediator;
+        _configuration = configuration;
     }
 
     /// <summary>
@@ -31,59 +36,8 @@ public class PaymentsController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
-        var query = _context.Payments
-            .Include(p => p.StudentUser)
-            .Include(p => p.Transactions)
-            .AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(status))
-            query = query.Where(p => p.Status == status);
-
-        if (studentUserId.HasValue)
-            query = query.Where(p => p.StudentUserId == studentUserId.Value);
-
-        if (!string.IsNullOrWhiteSpace(search))
-            query = query.Where(p => p.StudentUser != null && p.StudentUser.FullName.Contains(search));
-
-        var totalCount = await query.CountAsync();
-
-        var items = await query
-            .OrderByDescending(p => p.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .Select(p => new PaymentDto
-            {
-                PaymentId = p.PaymentId,
-                StudentUserId = p.StudentUserId,
-                StudentName = p.StudentUser != null ? p.StudentUser.FullName : null,
-                ClassId = p.ClassId,
-                TotalAmount = p.TotalAmount,
-                PaidAmount = p.PaidAmount,
-                RemainingAmount = p.RemainingAmount,
-                Status = p.Status,
-                DueDate = p.DueDate,
-                CreatedAt = p.CreatedAt,
-                UpdatedAt = p.UpdatedAt,
-                Transactions = p.Transactions.Select(t => new TransactionDto
-                {
-                    TransactionId = t.TransactionId,
-                    PaymentId = t.PaymentId,
-                    Amount = t.Amount,
-                    PaymentMethod = t.PaymentMethod,
-                    Note = t.Note,
-                    ReceivedByUserId = t.ReceivedByUserId,
-                    PaidAt = t.PaidAt
-                }).OrderByDescending(t => t.PaidAt).ToList()
-            })
-            .ToListAsync();
-
-        return Ok(new PagedResult<PaymentDto>
-        {
-            Items = items,
-            TotalCount = totalCount,
-            Page = page,
-            PageSize = pageSize
-        });
+        var result = await _mediator.Send(new GetPaymentsQuery(search, status, studentUserId, page, pageSize));
+        return Ok(result);
     }
 
     /// <summary>
@@ -98,38 +52,8 @@ public class PaymentsController : ControllerBase
         if (currentRole != "Admin" && currentUserId != userId)
             return Forbid();
 
-        var payments = await _context.Payments
-            .Include(p => p.StudentUser)
-            .Include(p => p.Transactions)
-            .Where(p => p.StudentUserId == userId)
-            .OrderByDescending(p => p.CreatedAt)
-            .Select(p => new PaymentDto
-            {
-                PaymentId = p.PaymentId,
-                StudentUserId = p.StudentUserId,
-                StudentName = p.StudentUser != null ? p.StudentUser.FullName : null,
-                ClassId = p.ClassId,
-                TotalAmount = p.TotalAmount,
-                PaidAmount = p.PaidAmount,
-                RemainingAmount = p.RemainingAmount,
-                Status = p.Status,
-                DueDate = p.DueDate,
-                CreatedAt = p.CreatedAt,
-                UpdatedAt = p.UpdatedAt,
-                Transactions = p.Transactions.Select(t => new TransactionDto
-                {
-                    TransactionId = t.TransactionId,
-                    PaymentId = t.PaymentId,
-                    Amount = t.Amount,
-                    PaymentMethod = t.PaymentMethod,
-                    Note = t.Note,
-                    ReceivedByUserId = t.ReceivedByUserId,
-                    PaidAt = t.PaidAt
-                }).OrderByDescending(t => t.PaidAt).ToList()
-            })
-            .ToListAsync();
-
-        return Ok(payments);
+        var result = await _mediator.Send(new GetPaymentsByStudentQuery(userId));
+        return Ok(result);
     }
 
     /// <summary>
@@ -137,42 +61,10 @@ public class PaymentsController : ControllerBase
     /// </summary>
     [HttpPost]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<PaymentDto>> CreatePayment(CreatePaymentDto dto)
+    public async Task<ActionResult<PaymentDto>> CreatePayment(CreatePaymentCommand command)
     {
-        var student = await _context.Users.FindAsync(dto.StudentUserId);
-        if (student == null || student.Role != "HocVien")
-            return BadRequest(new { message = "Không tìm thấy học viên" });
-
-        var payment = new Payment
-        {
-            StudentUserId = dto.StudentUserId,
-            ClassId = dto.ClassId,
-            TotalAmount = dto.TotalAmount,
-            PaidAmount = 0,
-            RemainingAmount = dto.TotalAmount,
-            Status = "ChuaTT",
-            DueDate = dto.DueDate,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
-        _context.Payments.Add(payment);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetPaymentsByStudent), new { userId = payment.StudentUserId }, new PaymentDto
-        {
-            PaymentId = payment.PaymentId,
-            StudentUserId = payment.StudentUserId,
-            StudentName = student.FullName,
-            ClassId = payment.ClassId,
-            TotalAmount = payment.TotalAmount,
-            PaidAmount = payment.PaidAmount,
-            RemainingAmount = payment.RemainingAmount,
-            Status = payment.Status,
-            DueDate = payment.DueDate,
-            CreatedAt = payment.CreatedAt,
-            UpdatedAt = payment.UpdatedAt
-        });
+        var result = await _mediator.Send(command);
+        return CreatedAtAction(nameof(GetPaymentsByStudent), new { userId = result.StudentUserId }, result);
     }
 
     /// <summary>
@@ -182,48 +74,16 @@ public class PaymentsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<TransactionDto>> AddTransaction(int id, CreateTransactionDto dto)
     {
-        var payment = await _context.Payments.FindAsync(id);
-        if (payment == null)
-            return NotFound(new { message = "Không tìm thấy phiếu học phí" });
-
-        if (payment.Status == "HoanTat")
-            return BadRequest(new { message = "Phiếu học phí đã hoàn tất" });
-
-        if (dto.Amount > payment.RemainingAmount)
-            return BadRequest(new { message = $"Số tiền thanh toán vượt quá số tiền còn lại ({payment.RemainingAmount:N0} VNĐ)" });
-
         var currentUserId = int.Parse(User.FindFirst("userId")?.Value ?? "0");
-
-        var transaction = new PaymentTransaction
-        {
-            PaymentId = id,
-            Amount = dto.Amount,
-            PaymentMethod = dto.PaymentMethod,
-            Note = dto.Note,
-            ReceivedByUserId = currentUserId,
-            PaidAt = DateTime.UtcNow
-        };
-
-        _context.PaymentTransactions.Add(transaction);
-
-        // Update payment amounts
-        payment.PaidAmount += dto.Amount;
-        payment.RemainingAmount -= dto.Amount;
-        payment.Status = payment.RemainingAmount <= 0 ? "HoanTat" : "DangTT";
-        payment.UpdatedAt = DateTime.UtcNow;
-
-        await _context.SaveChangesAsync();
-
-        return Ok(new TransactionDto
-        {
-            TransactionId = transaction.TransactionId,
-            PaymentId = transaction.PaymentId,
-            Amount = transaction.Amount,
-            PaymentMethod = transaction.PaymentMethod,
-            Note = transaction.Note,
-            ReceivedByUserId = transaction.ReceivedByUserId,
-            PaidAt = transaction.PaidAt
-        });
+        var command = new AddTransactionCommand(
+            PaymentId: id,
+            Amount: dto.Amount,
+            PaymentMethod: dto.PaymentMethod,
+            Note: dto.Note,
+            ReceivedByUserId: currentUserId
+        );
+        var result = await _mediator.Send(command);
+        return Ok(result);
     }
 
     /// <summary>
@@ -233,22 +93,8 @@ public class PaymentsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<TransactionDto>>> GetTransactions(int id)
     {
-        var transactions = await _context.PaymentTransactions
-            .Where(t => t.PaymentId == id)
-            .OrderByDescending(t => t.PaidAt)
-            .Select(t => new TransactionDto
-            {
-                TransactionId = t.TransactionId,
-                PaymentId = t.PaymentId,
-                Amount = t.Amount,
-                PaymentMethod = t.PaymentMethod,
-                Note = t.Note,
-                ReceivedByUserId = t.ReceivedByUserId,
-                PaidAt = t.PaidAt
-            })
-            .ToListAsync();
-
-        return Ok(transactions);
+        var result = await _mediator.Send(new GetTransactionsQuery(id));
+        return Ok(result);
     }
 
     /// <summary>
@@ -258,26 +104,113 @@ public class PaymentsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<PaymentDto>>> GetDebts()
     {
-        var debts = await _context.Payments
-            .Include(p => p.StudentUser)
-            .Where(p => p.RemainingAmount > 0)
-            .OrderByDescending(p => p.RemainingAmount)
-            .Select(p => new PaymentDto
-            {
-                PaymentId = p.PaymentId,
-                StudentUserId = p.StudentUserId,
-                StudentName = p.StudentUser != null ? p.StudentUser.FullName : null,
-                ClassId = p.ClassId,
-                TotalAmount = p.TotalAmount,
-                PaidAmount = p.PaidAmount,
-                RemainingAmount = p.RemainingAmount,
-                Status = p.Status,
-                DueDate = p.DueDate,
-                CreatedAt = p.CreatedAt,
-                UpdatedAt = p.UpdatedAt
-            })
-            .ToListAsync();
+        var result = await _mediator.Send(new GetDebtsQuery());
+        return Ok(result);
+    }
 
-        return Ok(debts);
+    /// <summary>
+    /// Webhook nhận callback thanh toán tự động (Giả lập Sepay)
+    /// </summary>
+    [HttpPost("callback/sepay")]
+    [AllowAnonymous]
+    public async Task<IActionResult> SepayCallback(SepayWebhookDto dto)
+    {
+        if (dto == null)
+            return BadRequest(new { message = "Dữ liệu trống" });
+
+        Console.WriteLine($"[DEBUG SEPAY] Received DTO: ID={dto.Id}, Gateway={dto.Gateway}, Date={dto.TransactionDate}, Account={dto.AccountNumber}, AmountIn={dto.AmountIn}, AmountOut={dto.AmountOut}, Code='{dto.Code}', Content='{dto.TransactionContent}', Ref={dto.ReferenceNumber}");
+
+        // Verify Webhook Token (Standard Enterprise Webhook authentication)
+        var apiKey = _configuration["Sepay:WebhookToken"];
+        if (!string.IsNullOrEmpty(apiKey))
+        {
+            var authHeader = Request.Headers["Authorization"].ToString();
+            Console.WriteLine($"[DEBUG SEPAY] Received Authorization Header: '{authHeader}'");
+            Console.WriteLine($"[DEBUG SEPAY] Expected WebhookToken: '{apiKey}'");
+            if (string.IsNullOrEmpty(authHeader) || 
+                (!authHeader.Equals($"Apikey {apiKey}", StringComparison.OrdinalIgnoreCase) && 
+                 !authHeader.Equals($"Bearer {apiKey}", StringComparison.OrdinalIgnoreCase)))
+            {
+                Console.WriteLine($"[DEBUG SEPAY] Authentication FAILED!");
+                return Unauthorized(new { message = "Xác thực Webhook thất bại" });
+            }
+            Console.WriteLine($"[DEBUG SEPAY] Authentication SUCCESS!");
+        }
+
+        var paymentId = ParsePaymentId(dto.TransactionContent, dto.Code);
+        if (!paymentId.HasValue)
+        {
+            return BadRequest(new { message = "Không thể phân tích PaymentId từ nội dung chuyển khoản. Cú pháp mẫu: PAY[Mã phiếu] hoặc PaymentId [Mã phiếu]" });
+        }
+
+        try
+        {
+            var command = new AddTransactionCommand(
+                PaymentId: paymentId.Value,
+                Amount: dto.AmountIn,
+                PaymentMethod: "ChuyenKhoan",
+                Note: $"Thanh toan tu dong qua Sepay. Ref: {dto.ReferenceNumber}. ND: {dto.TransactionContent}",
+                ReceivedByUserId: 1 // Sử dụng ID = 1 làm tài khoản hệ thống tự động ghi nhận
+            );
+
+            var result = await _mediator.Send(command);
+            return Ok(new { success = true, message = "Thanh toán thành công", transaction = result });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    private int? ParsePaymentId(string content, string code)
+    {
+        if (!string.IsNullOrEmpty(code))
+        {
+            var codeClean = code.ToUpper().Replace("PAY", "").Replace("PAYMENTID", "").Trim();
+            if (int.TryParse(codeClean, out var id))
+                return id;
+        }
+
+        var contentUpper = content.ToUpper();
+        
+        // Search for PAYxx (e.g. PAY4)
+        var matchIndex = contentUpper.IndexOf("PAY");
+        if (matchIndex >= 0)
+        {
+            var sub = contentUpper.Substring(matchIndex + 3);
+            var digitStr = "";
+            foreach (var c in sub)
+            {
+                if (char.IsDigit(c))
+                    digitStr += c;
+                else if (digitStr.Length > 0)
+                    break;
+            }
+            if (int.TryParse(digitStr, out var id))
+                return id;
+        }
+
+        // Search for PAYMENTID xx
+        var matchIndexId = contentUpper.IndexOf("PAYMENTID");
+        if (matchIndexId >= 0)
+        {
+            var sub = contentUpper.Substring(matchIndexId + 9);
+            var digitStr = "";
+            foreach (var c in sub)
+            {
+                if (char.IsDigit(c))
+                    digitStr += c;
+                else if (digitStr.Length > 0)
+                    break;
+            }
+            if (int.TryParse(digitStr, out var id))
+                return id;
+        }
+
+        return null;
     }
 }

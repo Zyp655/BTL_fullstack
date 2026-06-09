@@ -3,16 +3,29 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PaymentService.Data;
+using PaymentService.Repositories;
 using PaymentService.Services;
+using MassTransit;
+using PaymentService.Consumers;
+using Serilog;
+
+using FluentValidation;
+using PaymentService.Common.Behaviors;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Host.UseSerilog((context, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .Enrich.FromLogContext()
+    .WriteTo.Console(new Serilog.Formatting.Compact.CompactJsonFormatter()));
+
 // Add DbContext
 builder.Services.AddDbContext<PaymentDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+           .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
 
 // Add JWT Authentication
-var jwtSecret = builder.Configuration["JwtSettings:Secret"] ?? "TrainingCenterSharedSecretKey2024!@#$%^&*()_+";
+var jwtSecret = builder.Configuration["JwtSettings:Secret"] ?? throw new InvalidOperationException("JWT Secret is missing in configuration.");
 var key = Encoding.UTF8.GetBytes(jwtSecret);
 
 builder.Services.AddAuthentication(options =>
@@ -36,19 +49,61 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+// Add MassTransit with RabbitMQ and StudentEnrolledConsumer
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<StudentEnrolledConsumer>();
+    x.AddConsumer<ClassCreatedFromQueueConsumer>();
+    x.AddConsumer<ResolveCancelledClassConsumer>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        var rabbitHost = builder.Configuration["RabbitMQ:Host"] ?? throw new InvalidOperationException("RabbitMQ:Host is missing in configuration.");
+        var rabbitUser = builder.Configuration["RabbitMQ:Username"] ?? throw new InvalidOperationException("RabbitMQ:Username is missing in configuration.");
+        var rabbitPass = builder.Configuration["RabbitMQ:Password"] ?? throw new InvalidOperationException("RabbitMQ:Password is missing in configuration.");
+
+        cfg.Host(rabbitHost, "/", h =>
+        {
+            h.Username(rabbitUser);
+            h.Password(rabbitPass);
+        });
+
+        cfg.ConfigureEndpoints(context);
+    });
+});
+
 // Add Services
-builder.Services.AddSingleton<TokenService>();
+builder.Services.AddSingleton<ITokenService, TokenService>();
+builder.Services.AddSingleton<OtpService>();
 
-// Add HttpClients for inter-service communication
-builder.Services.AddHttpClient<CourseServiceClient>(client =>
+// Add HttpClients for inter-service communication (decoupled via interfaces)
+builder.Services.AddHttpClient<ICourseServiceClient, CourseServiceClient>(client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ServiceUrls:CourseService"] ?? "http://localhost:5001");
+    client.BaseAddress = new Uri(builder.Configuration["ServiceUrls:CourseService"] ?? throw new InvalidOperationException("ServiceUrls:CourseService is missing in configuration."));
+})
+.AddStandardResilienceHandler();
+
+builder.Services.AddHttpClient<IStudentServiceClient, StudentServiceClient>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ServiceUrls:StudentService"] ?? throw new InvalidOperationException("ServiceUrls:StudentService is missing in configuration."));
+})
+.AddStandardResilienceHandler();
+
+// Register Repositories
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+// Register MediatR & Behaviors
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
+    cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+    cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
 });
 
-builder.Services.AddHttpClient<StudentServiceClient>(client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["ServiceUrls:StudentService"] ?? "http://localhost:5002");
-});
+// Register FluentValidation
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+
 
 // Add Controllers
 builder.Services.AddControllers()
@@ -56,6 +111,23 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     });
+
+// Register Exception Handler
+builder.Services.AddExceptionHandler<PaymentService.Common.Middlewares.GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
+// Add API Versioning
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new Asp.Versioning.ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+    options.ApiVersionReader = new Asp.Versioning.UrlSegmentApiVersionReader();
+}).AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
+});
 
 // Add Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -74,12 +146,9 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Apply migrations on startup
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<PaymentDbContext>();
-    db.Database.Migrate();
-}
+app.UseExceptionHandler();
+
+
 
 // Configure pipeline
 app.UseSwagger();

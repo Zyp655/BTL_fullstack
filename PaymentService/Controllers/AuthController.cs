@@ -1,56 +1,101 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
-using PaymentService.Data;
 using PaymentService.DTOs;
+using PaymentService.Features.Users.Commands;
+using PaymentService.Features.Users.Queries;
 using PaymentService.Services;
+using PaymentService.Repositories;
+using MediatR;
+using Asp.Versioning;
 
 namespace PaymentService.Controllers;
 
+[ApiVersion("1.0")]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly PaymentDbContext _context;
-    private readonly TokenService _tokenService;
+    private readonly IMediator _mediator;
+    private readonly OtpService _otpService;
+    private readonly IUserRepository _userRepository;
 
-    public AuthController(PaymentDbContext context, TokenService tokenService)
+    public AuthController(IMediator mediator, OtpService otpService, IUserRepository userRepository)
     {
-        _context = context;
-        _tokenService = tokenService;
+        _mediator = mediator;
+        _otpService = otpService;
+        _userRepository = userRepository;
+    }
+
+    /// <summary>
+    /// Yêu cầu gửi mã OTP quên mật khẩu (Công khai)
+    /// </summary>
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Email))
+            return BadRequest(new { message = "Email không được để trống" });
+
+        var user = await _userRepository.GetUserByEmailAsync(dto.Email);
+        if (user == null)
+            return NotFound(new { message = "Không tìm thấy người dùng có địa chỉ email này" });
+
+        // Generate and log/send OTP
+        var otp = _otpService.GenerateOtp(dto.Email);
+
+        // For development/test ease, we return the OTP directly in the body
+        return Ok(new { 
+            message = "Mã OTP đã được tạo và gửi đến email của bạn.", 
+            otp = otp 
+        });
+    }
+
+    /// <summary>
+    /// Đặt lại mật khẩu sử dụng mã OTP (Công khai)
+    /// </summary>
+    [HttpPost("reset-password-otp")]
+    public async Task<IActionResult> ResetPasswordWithOtp(ResetPasswordWithOtpDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Otp) || string.IsNullOrWhiteSpace(dto.NewPassword))
+            return BadRequest(new { message = "Vui lòng nhập đầy đủ các trường thông tin" });
+
+        if (dto.NewPassword.Length < 6)
+            return BadRequest(new { message = "Mật khẩu mới phải có tối thiểu 6 ký tự" });
+
+        var isOtpValid = _otpService.VerifyOtp(dto.Email, dto.Otp);
+        if (!isOtpValid)
+            return BadRequest(new { message = "Mã OTP không đúng hoặc đã hết hạn" });
+
+        var user = await _userRepository.GetUserByEmailAsync(dto.Email);
+        if (user == null)
+            return NotFound(new { message = "Không tìm thấy tài khoản người dùng" });
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+        user.UpdatedAt = DateTime.UtcNow;
+
+        _userRepository.UpdateUser(user);
+        await _userRepository.SaveChangesAsync();
+
+        return Ok(new { message = "Đặt lại mật khẩu thành công. Vui lòng đăng nhập lại." });
     }
 
     /// <summary>
     /// Đăng nhập, trả JWT token
     /// </summary>
     [HttpPost("login")]
-    public async Task<ActionResult<LoginResponseDto>> Login(LoginDto dto)
+    public async Task<ActionResult<LoginResponseDto>> Login(LoginCommand command)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
-        if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
-            return Unauthorized(new { message = "Tên đăng nhập hoặc mật khẩu không đúng" });
-
-        if (!user.IsActive)
-            return Unauthorized(new { message = "Tài khoản đã bị khóa" });
-
-        var token = _tokenService.GenerateToken(user);
-
-        return Ok(new LoginResponseDto
+        try
         {
-            Token = token,
-            User = new UserDto
-            {
-                UserId = user.UserId,
-                Username = user.Username,
-                FullName = user.FullName,
-                Email = user.Email,
-                Phone = user.Phone,
-                Role = user.Role,
-                IsActive = user.IsActive,
-                CreatedAt = user.CreatedAt,
-                UpdatedAt = user.UpdatedAt
-            }
-        });
+            var result = await _mediator.Send(command);
+            if (result == null)
+                return Unauthorized(new { message = "Tên đăng nhập hoặc mật khẩu không đúng" });
+
+            return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
     }
 
     /// <summary>
@@ -58,39 +103,28 @@ public class AuthController : ControllerBase
     /// </summary>
     [HttpPost("register")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<UserDto>> Register(RegisterDto dto)
+    public async Task<ActionResult<UserDto>> Register(RegisterCommand command)
     {
-        if (await _context.Users.AnyAsync(u => u.Username == dto.Username))
-            return BadRequest(new { message = "Tên đăng nhập đã tồn tại" });
+        var result = await _mediator.Send(command);
+        return CreatedAtAction(nameof(GetProfile), result);
+    }
 
-        var user = new Models.User
-        {
-            Username = dto.Username,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-            FullName = dto.FullName,
-            Email = dto.Email,
-            Phone = dto.Phone,
-            Role = dto.Role,
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetProfile), new UserDto
-        {
-            UserId = user.UserId,
-            Username = user.Username,
-            FullName = user.FullName,
-            Email = user.Email,
-            Phone = user.Phone,
-            Role = user.Role,
-            IsActive = user.IsActive,
-            CreatedAt = user.CreatedAt,
-            UpdatedAt = user.UpdatedAt
-        });
+    /// <summary>
+    /// Học viên tự đăng ký tài khoản (Công khai)
+    /// </summary>
+    [HttpPost("signup")]
+    public async Task<ActionResult<UserDto>> SignUp(SignUpDto dto)
+    {
+        var command = new RegisterCommand(
+            dto.Username,
+            dto.Password,
+            dto.FullName,
+            dto.Email,
+            dto.Phone,
+            "HocVien"
+        );
+        var result = await _mediator.Send(command);
+        return CreatedAtAction(nameof(GetProfile), result);
     }
 
     /// <summary>
@@ -101,22 +135,35 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<UserDto>> GetProfile()
     {
         var userId = int.Parse(User.FindFirst("userId")?.Value ?? "0");
-        var user = await _context.Users.FindAsync(userId);
+        var user = await _mediator.Send(new GetUserByIdQuery(userId));
         if (user == null)
             return NotFound(new { message = "Không tìm thấy người dùng" });
 
-        return Ok(new UserDto
-        {
-            UserId = user.UserId,
-            Username = user.Username,
-            FullName = user.FullName,
-            Email = user.Email,
-            Phone = user.Phone,
-            Role = user.Role,
-            IsActive = user.IsActive,
-            CreatedAt = user.CreatedAt,
-            UpdatedAt = user.UpdatedAt
-        });
+        return Ok(user);
+    }
+
+    /// <summary>
+    /// Cập nhật profile hiện tại
+    /// </summary>
+    [HttpPut("profile")]
+    [Authorize]
+    public async Task<ActionResult<UserDto>> UpdateProfile(UpdateProfileDto dto)
+    {
+        var userId = int.Parse(User.FindFirst("userId")?.Value ?? "0");
+        var user = await _mediator.Send(new GetUserByIdQuery(userId));
+        if (user == null)
+            return NotFound(new { message = "Không tìm thấy người dùng" });
+
+        var command = new UpdateUserCommand(
+            userId,
+            dto.FullName,
+            dto.Email,
+            dto.Phone,
+            user.Role
+        );
+
+        var result = await _mediator.Send(command);
+        return Ok(result);
     }
 
     /// <summary>
@@ -124,19 +171,14 @@ public class AuthController : ControllerBase
     /// </summary>
     [HttpPut("change-password")]
     [Authorize]
-    public async Task<IActionResult> ChangePassword(ChangePasswordDto dto)
+    public async Task<IActionResult> ChangePassword(ChangePasswordCommand command)
     {
         var userId = int.Parse(User.FindFirst("userId")?.Value ?? "0");
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null)
+        command = command with { Id = userId };
+        
+        var success = await _mediator.Send(command);
+        if (!success)
             return NotFound(new { message = "Không tìm thấy người dùng" });
-
-        if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash))
-            return BadRequest(new { message = "Mật khẩu hiện tại không đúng" });
-
-        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
-        user.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
 
         return Ok(new { message = "Đổi mật khẩu thành công" });
     }

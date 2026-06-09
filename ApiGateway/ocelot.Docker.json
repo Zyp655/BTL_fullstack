@@ -1,0 +1,182 @@
+{
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/api/v1/categories/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "course-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/categories/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/categories",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "course-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/categories",
+      "UpstreamHttpMethod": [ "GET", "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/courses/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "course-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/courses/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/courses",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "course-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/courses",
+      "UpstreamHttpMethod": [ "GET", "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/classes/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "course-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/classes/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/classes",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "course-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/classes",
+      "UpstreamHttpMethod": [ "GET", "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/schedules/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "course-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/schedules/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/students/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "student-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/students/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/students",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "student-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/students",
+      "UpstreamHttpMethod": [ "GET", "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/support-messages/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "student-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/support-messages/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/support-messages",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "student-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/support-messages",
+      "UpstreamHttpMethod": [ "GET", "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/hubs/support/negotiate",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "student-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/hubs/support/negotiate",
+      "UpstreamHttpMethod": [ "POST", "OPTIONS" ]
+    },
+    {
+      "DownstreamPathTemplate": "/hubs/support",
+      "DownstreamScheme": "ws",
+      "DownstreamHostAndPorts": [{ "Host": "student-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/hubs/support",
+      "UpstreamHttpMethod": []
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/enrollments/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "student-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/enrollments/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/enrollments",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "student-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/enrollments",
+      "UpstreamHttpMethod": [ "GET", "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/attendances/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "student-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/attendances/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/attendances",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "student-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/attendances",
+      "UpstreamHttpMethod": [ "GET", "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/results/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "student-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/results/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/results",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "student-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/results",
+      "UpstreamHttpMethod": [ "GET", "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/auth/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "payment-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/auth/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/users/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "payment-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/users/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/users",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "payment-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/users",
+      "UpstreamHttpMethod": [ "GET", "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/payments/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "payment-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/payments/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/payments",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "payment-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/payments",
+      "UpstreamHttpMethod": [ "GET", "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/reports/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "payment-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/reports/{everything}",
+      "UpstreamHttpMethod": [ "GET" ]
+    }
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:5000"
+  }
+}

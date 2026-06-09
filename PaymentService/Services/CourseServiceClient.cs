@@ -2,7 +2,7 @@ using PaymentService.DTOs;
 
 namespace PaymentService.Services;
 
-public class CourseServiceClient
+public class CourseServiceClient : ICourseServiceClient
 {
     private readonly HttpClient _httpClient;
 
@@ -15,7 +15,7 @@ public class CourseServiceClient
     {
         try
         {
-            var response = await _httpClient.GetAsync($"/api/classes/{classId}");
+            var response = await _httpClient.GetAsync($"/api/v1/classes/{classId}");
             if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadFromJsonAsync<ClassInfoDto>();
@@ -32,7 +32,7 @@ public class CourseServiceClient
     {
         try
         {
-            var response = await _httpClient.GetAsync($"/api/courses/{courseId}");
+            var response = await _httpClient.GetAsync($"/api/v1/courses/{courseId}");
             if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadFromJsonAsync<CourseInfoDto>();

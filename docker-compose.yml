@@ -1,0 +1,174 @@
+version: '3.8'
+
+services:
+  # RabbitMQ (Shared Message Broker)
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"       # RabbitMQ AMQP port
+      - "15672:15672"     # RabbitMQ Management UI port
+    networks:
+      - training-center-net
+    restart: unless-stopped
+
+  # Course DB
+  course-sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: course-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Course@Pass123
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - course-sqlserver-data:/var/opt/mssql
+    networks:
+      - training-center-net
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Course@Pass123" -C -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # Course & Schedule Service
+  course-service:
+    build:
+      context: ./CourseService
+    container_name: course-service
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ConnectionStrings__DefaultConnection=Server=course-sqlserver;Database=CourseDB;User=sa;Password=Course@Pass123;TrustServerCertificate=true
+      - JwtSettings__Secret=TrainingCenterSharedSecretKey2024!@#$%^&*()_+
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=guest
+      - RabbitMQ__Password=guest
+    depends_on:
+      course-sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    networks:
+      - training-center-net
+    restart: unless-stopped
+
+  # Student DB
+  student-sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: student-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Student@Pass123
+      - MSSQL_PID=Developer
+    ports:
+      - "1434:1433"
+    volumes:
+      - student-sqlserver-data:/var/opt/mssql
+    networks:
+      - training-center-net
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Student@Pass123" -C -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # Student & Attendance Service
+  student-service:
+    build:
+      context: ./StudentService
+    container_name: student-service
+    ports:
+      - "5002:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ConnectionStrings__DefaultConnection=Server=student-sqlserver;Database=StudentDB;User=sa;Password=Student@Pass123;TrustServerCertificate=true
+      - JwtSettings__Secret=TrainingCenterSharedSecretKey2024!@#$%^&*()_+
+      - ServiceUrls__CourseService=http://course-service:8080
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=guest
+      - RabbitMQ__Password=guest
+    depends_on:
+      student-sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    networks:
+      - training-center-net
+    restart: unless-stopped
+
+  # Payment DB
+  payment-sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: payment-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Payment@Pass123
+      - MSSQL_PID=Developer
+    ports:
+      - "1435:1433"
+    volumes:
+      - payment-sqlserver-data:/var/opt/mssql
+    networks:
+      - training-center-net
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Payment@Pass123" -C -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # Payment & Report Service
+  payment-service:
+    build:
+      context: ./PaymentService
+    container_name: payment-service
+    ports:
+      - "5003:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ConnectionStrings__DefaultConnection=Server=payment-sqlserver;Database=PaymentDB;User=sa;Password=Payment@Pass123;TrustServerCertificate=true
+      - JwtSettings__Secret=TrainingCenterSharedSecretKey2024!@#$%^&*()_+
+      - ServiceUrls__CourseService=http://course-service:8080
+      - ServiceUrls__StudentService=http://student-service:8080
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=guest
+      - RabbitMQ__Password=guest
+    depends_on:
+      payment-sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    networks:
+      - training-center-net
+    restart: unless-stopped
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./ApiGateway
+    container_name: api-gateway
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - JwtSettings__Secret=TrainingCenterSharedSecretKey2024!@#$%^&*()_+
+      - ServiceUrls__StudentService=http://student-service:8080
+      - ServiceUrls__PaymentService=http://payment-service:8080
+    networks:
+      - training-center-net
+    restart: unless-stopped
+
+volumes:
+  course-sqlserver-data:
+  student-sqlserver-data:
+  payment-sqlserver-data:
+
+networks:
+  training-center-net:
+    name: training-center-net
+    driver: bridge
