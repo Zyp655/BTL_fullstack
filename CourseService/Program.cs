@@ -145,6 +145,25 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<CourseDbContext>();
         context.Database.Migrate();
+        
+        bool hasData = false;
+        try
+        {
+            hasData = context.Courses.Any();
+        }
+        catch
+        {
+            // Table might not exist or be corrupted
+        }
+
+        if (!hasData)
+        {
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            logger.LogWarning("Database for CourseService is empty or corrupted. Recreating...");
+            context.Database.EnsureDeleted();
+            context.Database.Migrate();
+            logger.LogInformation("Database for CourseService recreated and seeded successfully.");
+        }
     }
     catch (Exception ex)
     {

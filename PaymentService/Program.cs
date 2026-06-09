@@ -155,6 +155,25 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<PaymentDbContext>();
         context.Database.Migrate();
+        
+        bool hasData = false;
+        try
+        {
+            hasData = context.Users.Any();
+        }
+        catch
+        {
+            // Table might not exist or be corrupted
+        }
+
+        if (!hasData)
+        {
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            logger.LogWarning("Database for PaymentService is empty or corrupted. Recreating...");
+            context.Database.EnsureDeleted();
+            context.Database.Migrate();
+            logger.LogInformation("Database for PaymentService recreated and seeded successfully.");
+        }
     }
     catch (Exception ex)
     {
