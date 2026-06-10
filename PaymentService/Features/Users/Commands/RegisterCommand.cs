@@ -9,5 +9,7 @@ public record RegisterCommand(
     string FullName,
     string? Email,
     string? Phone,
-    string Role
+    string Role,
+    string? Specialization = null,
+    string? Degree = null
 ) : IRequest<UserDto>;

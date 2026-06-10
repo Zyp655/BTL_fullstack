@@ -17,6 +17,8 @@ public class RegisterDto
     public string? Email { get; set; }
     public string? Phone { get; set; }
     public string Role { get; set; } = "HocVien"; // Admin, GiaoVien, HocVien
+    public string? Specialization { get; set; }
+    public string? Degree { get; set; }
 }
 
 public class SignUpDto
@@ -49,6 +51,8 @@ public class UserDto
     public string? Email { get; set; }
     public string? Phone { get; set; }
     public string Role { get; set; } = string.Empty;
+    public string? Specialization { get; set; }
+    public string? Degree { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
@@ -60,6 +64,8 @@ public class UpdateUserDto
     public string? Email { get; set; }
     public string? Phone { get; set; }
     public string Role { get; set; } = "HocVien";
+    public string? Specialization { get; set; }
+    public string? Degree { get; set; }
 }
 
 public class UpdateProfileDto

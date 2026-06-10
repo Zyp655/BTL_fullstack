@@ -121,7 +121,9 @@ public class AuthController : ControllerBase
             dto.FullName,
             dto.Email,
             dto.Phone,
-            "HocVien"
+            "HocVien",
+            null,
+            null
         );
         var result = await _mediator.Send(command);
         return CreatedAtAction(nameof(GetProfile), result);
@@ -159,7 +161,9 @@ public class AuthController : ControllerBase
             dto.FullName,
             dto.Email,
             dto.Phone,
-            user.Role
+            user.Role,
+            user.Specialization,
+            user.Degree
         );
 
         var result = await _mediator.Send(command);

@@ -27,6 +27,8 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, UserDto>
             Email = request.Email,
             Phone = request.Phone,
             Role = request.Role,
+            Specialization = request.Specialization,
+            Degree = request.Degree,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow

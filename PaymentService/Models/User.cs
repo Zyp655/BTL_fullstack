@@ -28,6 +28,12 @@ public class User
     [MaxLength(20)]
     public string Role { get; set; } = "HocVien"; // Admin, GiaoVien, HocVien
 
+    [MaxLength(200)]
+    public string? Specialization { get; set; }
+
+    [MaxLength(100)]
+    public string? Degree { get; set; }
+
     public bool IsActive { get; set; } = true;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

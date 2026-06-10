@@ -34,7 +34,11 @@ public class UserRepository : IUserRepository
             query = query.Where(u => u.IsActive == isActive.Value);
 
         if (!string.IsNullOrWhiteSpace(search))
-            query = query.Where(u => u.FullName.Contains(search) || u.Username.Contains(search) || (u.Email != null && u.Email.Contains(search)));
+            query = query.Where(u => u.FullName.Contains(search) 
+                                  || u.Username.Contains(search) 
+                                  || (u.Email != null && u.Email.Contains(search))
+                                  || (u.Specialization != null && u.Specialization.Contains(search))
+                                  || (u.Degree != null && u.Degree.Contains(search)));
 
         return await query
             .OrderByDescending(u => u.CreatedAt)
@@ -54,7 +58,11 @@ public class UserRepository : IUserRepository
             query = query.Where(u => u.IsActive == isActive.Value);
 
         if (!string.IsNullOrWhiteSpace(search))
-            query = query.Where(u => u.FullName.Contains(search) || u.Username.Contains(search) || (u.Email != null && u.Email.Contains(search)));
+            query = query.Where(u => u.FullName.Contains(search) 
+                                  || u.Username.Contains(search) 
+                                  || (u.Email != null && u.Email.Contains(search))
+                                  || (u.Specialization != null && u.Specialization.Contains(search))
+                                  || (u.Degree != null && u.Degree.Contains(search)));
 
         return await query.CountAsync();
     }

@@ -22,6 +22,8 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserD
         user.Email = request.Email;
         user.Phone = request.Phone;
         user.Role = request.Role;
+        user.Specialization = request.Specialization;
+        user.Degree = request.Degree;
         user.UpdatedAt = DateTime.UtcNow;
 
         _userRepository.UpdateUser(user);

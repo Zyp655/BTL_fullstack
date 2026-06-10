@@ -13,6 +13,8 @@ public static class UserMapper
         Email = u.Email,
         Phone = u.Phone,
         Role = u.Role,
+        Specialization = u.Specialization,
+        Degree = u.Degree,
         IsActive = u.IsActive,
         CreatedAt = u.CreatedAt,
         UpdatedAt = u.UpdatedAt
