@@ -64,6 +64,8 @@ var app = builder.Build();
 
 app.UseCors("ProductionCorsPolicy");
 
+app.UseRouting();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -233,6 +235,8 @@ app.MapGet("/api/v1/portal/student-summary/{userId:int}", async (int userId, Htt
         creditSummary = credits
     });
 }).RequireAuthorization();
+
+app.UseEndpoints(endpoints => { });
 
 await app.UseOcelot();
 
