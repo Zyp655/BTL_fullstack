@@ -55,6 +55,7 @@ builder.Services.AddMassTransit(x =>
     x.AddConsumer<StudentEnrolledConsumer>();
     x.AddConsumer<ClassCreatedFromQueueConsumer>();
     x.AddConsumer<ResolveCancelledClassConsumer>();
+    x.AddConsumer<CourseDeletedConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {

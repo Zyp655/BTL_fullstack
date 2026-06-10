@@ -94,6 +94,8 @@ builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<ClassCreatedFromQueueConsumer>();
     x.AddConsumer<PaymentCompletedConsumer>();
+    x.AddConsumer<CourseDeletedConsumer>();
+    x.AddConsumer<StudentCreditCreatedConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {
