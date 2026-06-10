@@ -235,5 +235,5 @@ public class CourseDbContext : DbContext
         modelBuilder.Entity<Class>().HasData(classes.ToArray());
         modelBuilder.Entity<Schedule>().HasData(schedules.ToArray());
     }
-    }
 }
+

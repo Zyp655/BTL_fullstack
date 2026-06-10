@@ -1277,8 +1277,8 @@ new Student
             }
         );
 
-        // Seed enrollments (matching ClassIds from CourseService)
-        modelBuilder.Entity<Enrollment>().HasData(
+        var enrollments = new List<Enrollment>
+        {
             new Enrollment { EnrollmentId = 1, StudentId = 1, ClassId = 1, Status = "DangHoc", EnrolledAt = new DateTime(2026, 2, 20, 0, 0, 0, DateTimeKind.Utc) },
             new Enrollment { EnrollmentId = 2, StudentId = 2, ClassId = 1, Status = "DangHoc", EnrolledAt = new DateTime(2026, 2, 22, 0, 0, 0, DateTimeKind.Utc) },
             new Enrollment { EnrollmentId = 3, StudentId = 3, ClassId = 1, Status = "DangHoc", EnrolledAt = new DateTime(2026, 2, 20, 0, 0, 0, DateTimeKind.Utc) },
@@ -1316,7 +1316,28 @@ new Student
             new Enrollment { EnrollmentId = 28, StudentId = 8, ClassId = 8, Status = "DangHoc", EnrolledAt = new DateTime(2026, 4, 27, 0, 0, 0, DateTimeKind.Utc) },
             new Enrollment { EnrollmentId = 38, StudentId = 7, ClassId = 28, Status = "DangHoc", EnrolledAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc) },
             new Enrollment { EnrollmentId = 39, StudentId = 8, ClassId = 28, Status = "DangHoc", EnrolledAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc) }
-        );
+        };
+
+        int enrollmentIdCounter = 100;
+        for (int i = 1; i <= 20; i++)
+        {
+            int classId = 200 + i;
+            for (int s = 1; s <= 15; s++)
+            {
+                int studentId = ((i - 1) * 15 + (s - 1)) % 90 + 1;
+                enrollments.Add(new Enrollment
+                {
+                    EnrollmentId = enrollmentIdCounter++,
+                    StudentId = studentId,
+                    ClassId = classId,
+                    Status = "DangHoc",
+                    EnrolledAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc)
+                });
+            }
+        }
+
+        modelBuilder.Entity<Enrollment>().HasData(enrollments.ToArray());
+
 
         // Seed attendance records
         modelBuilder.Entity<Attendance>().HasData(
