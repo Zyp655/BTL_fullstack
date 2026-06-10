@@ -4,12 +4,14 @@ using StudentService.Features.Students.Commands;
 using StudentService.Features.Students.Queries;
 using MediatR;
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 
 namespace StudentService.Controllers;
 
 [ApiVersion("1.0")]
 [ApiController]
 [Route("api/v{version:apiVersion}/[controller]")]
+[Authorize]
 public class StudentsController : ControllerBase
 {
     private readonly IMediator _mediator;
