@@ -45,16 +45,8 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("ProductionCorsPolicy", policy =>
     {
-        if (allowedOrigins.Length > 0)
-        {
-            policy.WithOrigins(allowedOrigins);
-        }
-        else
-        {
-            policy.WithOrigins("http://localhost:5173");
-        }
-
-        policy.AllowAnyMethod()
+        policy.SetIsOriginAllowed(origin => true)
+              .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials()
               .SetPreflightMaxAge(TimeSpan.FromMinutes(preflightMaxAge))
