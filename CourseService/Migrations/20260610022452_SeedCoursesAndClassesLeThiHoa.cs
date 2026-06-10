@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -13,6 +13,8 @@ namespace CourseService.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql("DELETE FROM Classes WHERE CourseId = 14; DELETE FROM Courses WHERE CourseId = 14;");
+
             migrationBuilder.UpdateData(
                 table: "Classes",
                 keyColumn: "ClassId",
