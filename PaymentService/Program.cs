@@ -52,6 +52,7 @@ builder.Services.AddAuthorization();
 // Add MassTransit with RabbitMQ and StudentEnrolledConsumer
 builder.Services.AddMassTransit(x =>
 {
+    x.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("payment", false));
     x.AddConsumer<StudentEnrolledConsumer>();
     x.AddConsumer<ClassCreatedFromQueueConsumer>();
     x.AddConsumer<ResolveCancelledClassConsumer>();
