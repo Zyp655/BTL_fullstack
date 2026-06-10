@@ -118,7 +118,16 @@ public class PaymentsController : ControllerBase
         if (dto == null)
             return BadRequest(new { message = "Dữ liệu trống" });
 
-        Console.WriteLine($"[DEBUG SEPAY] Received DTO: ID={dto.Id}, Gateway={dto.Gateway}, Date={dto.TransactionDate}, Account={dto.AccountNumber}, AmountIn={dto.AmountIn}, AmountOut={dto.AmountOut}, Code='{dto.Code}', Content='{dto.TransactionContent}', Ref={dto.ReferenceNumber}");
+        var gateway = dto.Gateway ?? string.Empty;
+        var transactionDate = dto.TransactionDate ?? dto.TransactionDateCamel ?? string.Empty;
+        var accountNumber = dto.AccountNumber ?? dto.AccountNumberCamel ?? string.Empty;
+        var amountIn = dto.AmountIn ?? dto.TransferAmount ?? dto.AmountInCamel ?? 0;
+        var amountOut = dto.AmountOut ?? dto.AmountOutCamel ?? 0;
+        var code = dto.Code ?? string.Empty;
+        var transactionContent = dto.TransactionContent ?? dto.Content ?? dto.TransactionContentCamel ?? string.Empty;
+        var referenceNumber = dto.ReferenceNumber ?? dto.ReferenceCode ?? dto.ReferenceNumberCamel ?? string.Empty;
+
+        Console.WriteLine($"[DEBUG SEPAY] Received DTO: ID={dto.Id}, Gateway={gateway}, Date={transactionDate}, Account={accountNumber}, AmountIn={amountIn}, AmountOut={amountOut}, Code='{code}', Content='{transactionContent}', Ref={referenceNumber}");
 
         // Verify Webhook Token (Standard Enterprise Webhook authentication)
         var apiKey = _configuration["Sepay:WebhookToken"];
@@ -137,7 +146,7 @@ public class PaymentsController : ControllerBase
             Console.WriteLine($"[DEBUG SEPAY] Authentication SUCCESS!");
         }
 
-        var paymentId = ParsePaymentId(dto.TransactionContent, dto.Code);
+        var paymentId = ParsePaymentId(transactionContent, code);
         if (!paymentId.HasValue)
         {
             return BadRequest(new { message = "Không thể phân tích PaymentId từ nội dung chuyển khoản. Cú pháp mẫu: PAY[Mã phiếu] hoặc PaymentId [Mã phiếu]" });
@@ -147,9 +156,9 @@ public class PaymentsController : ControllerBase
         {
             var command = new AddTransactionCommand(
                 PaymentId: paymentId.Value,
-                Amount: dto.AmountIn,
+                Amount: amountIn,
                 PaymentMethod: "ChuyenKhoan",
-                Note: $"Thanh toan tu dong qua Sepay. Ref: {dto.ReferenceNumber}. ND: {dto.TransactionContent}",
+                Note: $"Thanh toan tu dong qua Sepay. Ref: {referenceNumber}. ND: {transactionContent}",
                 ReceivedByUserId: 1 // Sử dụng ID = 1 làm tài khoản hệ thống tự động ghi nhận
             );
 
@@ -166,7 +175,7 @@ public class PaymentsController : ControllerBase
         }
     }
 
-    private int? ParsePaymentId(string content, string code)
+    private int? ParsePaymentId(string? content, string? code)
     {
         if (!string.IsNullOrEmpty(code))
         {
@@ -174,6 +183,9 @@ public class PaymentsController : ControllerBase
             if (int.TryParse(codeClean, out var id))
                 return id;
         }
+
+        if (string.IsNullOrEmpty(content))
+            return null;
 
         var contentUpper = content.ToUpper();
         

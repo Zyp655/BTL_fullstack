@@ -178,31 +178,58 @@ public class PagedResult<T>
 public class SepayWebhookDto
 {
     [JsonPropertyName("id")]
-    public long Id { get; set; }
+    public long? Id { get; set; }
 
     [JsonPropertyName("gateway")]
-    public string Gateway { get; set; } = string.Empty;
+    public string? Gateway { get; set; }
 
     [JsonPropertyName("transaction_date")]
     public string? TransactionDate { get; set; }
 
+    [JsonPropertyName("transactionDate")]
+    public string? TransactionDateCamel { get; set; }
+
     [JsonPropertyName("account_number")]
-    public string AccountNumber { get; set; } = string.Empty;
+    public string? AccountNumber { get; set; }
+
+    [JsonPropertyName("accountNumber")]
+    public string? AccountNumberCamel { get; set; }
 
     [JsonPropertyName("amount_in")]
-    public decimal AmountIn { get; set; }
+    public decimal? AmountIn { get; set; }
+
+    [JsonPropertyName("transferAmount")]
+    public decimal? TransferAmount { get; set; }
+
+    [JsonPropertyName("amountIn")]
+    public decimal? AmountInCamel { get; set; }
 
     [JsonPropertyName("amount_out")]
-    public decimal AmountOut { get; set; }
+    public decimal? AmountOut { get; set; }
+
+    [JsonPropertyName("amountOut")]
+    public decimal? AmountOutCamel { get; set; }
 
     [JsonPropertyName("code")]
-    public string Code { get; set; } = string.Empty; // Holds transfer syntax/invoice code (e.g. "PaymentId 4")
+    public string? Code { get; set; }
 
     [JsonPropertyName("transaction_content")]
-    public string TransactionContent { get; set; } = string.Empty;
+    public string? TransactionContent { get; set; }
+
+    [JsonPropertyName("content")]
+    public string? Content { get; set; }
+
+    [JsonPropertyName("transactionContent")]
+    public string? TransactionContentCamel { get; set; }
 
     [JsonPropertyName("reference_number")]
-    public string ReferenceNumber { get; set; } = string.Empty;
+    public string? ReferenceNumber { get; set; }
+
+    [JsonPropertyName("referenceCode")]
+    public string? ReferenceCode { get; set; }
+
+    [JsonPropertyName("referenceNumber")]
+    public string? ReferenceNumberCamel { get; set; }
 }
 
 public class UserStatsDto
