@@ -1313,7 +1313,9 @@ new Student
 
             new Enrollment { EnrollmentId = 26, StudentId = 6, ClassId = 8, Status = "DangHoc", EnrolledAt = new DateTime(2026, 4, 25, 0, 0, 0, DateTimeKind.Utc) },
             new Enrollment { EnrollmentId = 27, StudentId = 7, ClassId = 8, Status = "DangHoc", EnrolledAt = new DateTime(2026, 4, 26, 0, 0, 0, DateTimeKind.Utc) },
-            new Enrollment { EnrollmentId = 28, StudentId = 8, ClassId = 8, Status = "DangHoc", EnrolledAt = new DateTime(2026, 4, 27, 0, 0, 0, DateTimeKind.Utc) }
+            new Enrollment { EnrollmentId = 28, StudentId = 8, ClassId = 8, Status = "DangHoc", EnrolledAt = new DateTime(2026, 4, 27, 0, 0, 0, DateTimeKind.Utc) },
+            new Enrollment { EnrollmentId = 38, StudentId = 7, ClassId = 28, Status = "DangHoc", EnrolledAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc) },
+            new Enrollment { EnrollmentId = 39, StudentId = 8, ClassId = 28, Status = "DangHoc", EnrolledAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc) }
         );
 
         // Seed attendance records

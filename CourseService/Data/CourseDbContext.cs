@@ -196,6 +196,19 @@ public class CourseDbContext : DbContext
                 IsActive = true,
                 CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new Course
+            {
+                CourseId = 14,
+                CourseName = "Lập trình C# nâng cao",
+                Description = "Khóa học lập trình C# nâng cao, tối ưu hiệu năng và phát triển ứng dụng doanh nghiệp.",
+                Level = "Advanced",
+                Category = "TinHoc",
+                Fee = 4500000,
+                TotalSessions = 36,
+                IsActive = true,
+                CreatedAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc),
+                UpdatedAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc)
             }
         );
 
@@ -280,7 +293,7 @@ public class CourseDbContext : DbContext
                 ClassId = 6,
                 CourseId = 9,
                 ClassName = "KN-QLTG-01",
-                TeacherId = 8,
+                TeacherId = 5,
                 TeacherName = "Lê Thị Hoa",
                 Room = "P.301",
                 MaxStudents = 40,
@@ -319,6 +332,21 @@ public class CourseDbContext : DbContext
                 StartDate = new DateTime(2026, 5, 10, 0, 0, 0, DateTimeKind.Utc),
                 EndDate = new DateTime(2026, 8, 10, 0, 0, 0, DateTimeKind.Utc),
                 CreatedAt = new DateTime(2026, 4, 20, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new Class
+            {
+                ClassId = 28,
+                CourseId = 14,
+                ClassName = "CS-NC-01",
+                TeacherId = 5,
+                TeacherName = "Lê Thị Hoa",
+                Room = "P.Lab3",
+                MaxStudents = 30,
+                CurrentStudents = 2,
+                Status = "InProgress",
+                StartDate = new DateTime(2026, 7, 15, 0, 0, 0, DateTimeKind.Utc),
+                EndDate = new DateTime(2026, 10, 15, 0, 0, 0, DateTimeKind.Utc),
+                CreatedAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc)
             }
         );
 
@@ -338,7 +366,9 @@ public class CourseDbContext : DbContext
             new Schedule { ScheduleId = 13, ClassId = 7, DayOfWeek = 3, Session = "Chieu", StartTime = new TimeSpan(14, 0, 0), EndTime = new TimeSpan(16, 30, 0) },
             new Schedule { ScheduleId = 14, ClassId = 7, DayOfWeek = 5, Session = "Chieu", StartTime = new TimeSpan(14, 0, 0), EndTime = new TimeSpan(16, 30, 0) },
             new Schedule { ScheduleId = 15, ClassId = 8, DayOfWeek = 4, Session = "Toi", StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 30, 0) },
-            new Schedule { ScheduleId = 16, ClassId = 8, DayOfWeek = 6, Session = "Toi", StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 30, 0) }
+            new Schedule { ScheduleId = 16, ClassId = 8, DayOfWeek = 6, Session = "Toi", StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 30, 0) },
+            new Schedule { ScheduleId = 47, ClassId = 28, DayOfWeek = 3, Session = "Toi", StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 30, 0) },
+            new Schedule { ScheduleId = 48, ClassId = 28, DayOfWeek = 5, Session = "Toi", StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 30, 0) }
         );
     }
 }

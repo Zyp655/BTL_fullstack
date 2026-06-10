@@ -90,15 +90,87 @@ app.MapGet("/api/v1/portal/student-summary/{userId:int}", async (int userId, Htt
     // 1. Fetch Student Profile by UserId
     var profileRequest = createRequest($"{studentServiceUrl}/api/v1/students/by-user/{userId}");
     var profileResponse = await httpClient.SendAsync(profileRequest);
-    if (!profileResponse.IsSuccessStatusCode)
+    
+    JsonNode? profileJson = null;
+    if (profileResponse.IsSuccessStatusCode)
     {
-        return Results.NotFound(new { message = "Không tìm thấy hồ sơ học viên" });
+        profileJson = await profileResponse.Content.ReadFromJsonAsync<JsonNode>();
+    }
+    else
+    {
+        // Self-healing: try to find the student by user's email/fullname and link them
+        try
+        {
+            var userProfileRequest = createRequest($"{paymentServiceUrl}/api/v1/auth/profile");
+            var userProfileResponse = await httpClient.SendAsync(userProfileRequest);
+            if (userProfileResponse.IsSuccessStatusCode)
+            {
+                var userProfile = await userProfileResponse.Content.ReadFromJsonAsync<JsonNode>();
+                var email = userProfile?["email"]?.GetValue<string>();
+                if (!string.IsNullOrEmpty(email))
+                {
+                    // Search student by email
+                    var searchUrl = $"{studentServiceUrl}/api/v1/students?search={Uri.EscapeDataString(email)}&pageSize=5";
+                    var searchRequest = createRequest(searchUrl);
+                    var searchResponse = await httpClient.SendAsync(searchRequest);
+                    if (searchResponse.IsSuccessStatusCode)
+                    {
+                        var searchResult = await searchResponse.Content.ReadFromJsonAsync<JsonNode>();
+                        var items = searchResult?["items"]?.AsArray();
+                        if (items != null && items.Count > 0)
+                        {
+                            // Find the student matching email
+                            var matchedStudent = items.FirstOrDefault(item => 
+                                item?["email"]?.GetValue<string>()?.ToLower() == email.ToLower());
+                            
+                            if (matchedStudent != null)
+                            {
+                                int studentIdToLink = matchedStudent["studentId"]!.GetValue<int>();
+                                
+                                // Call PUT /api/v1/students/{studentId} to link it to this userId
+                                var updatePayload = new
+                                {
+                                    id = studentIdToLink,
+                                    userId = userId,
+                                    fullName = matchedStudent["fullName"]?.GetValue<string>(),
+                                    dateOfBirth = matchedStudent["dateOfBirth"]?.GetValue<string>(),
+                                    gender = matchedStudent["gender"]?.GetValue<string>() ?? "Nam",
+                                    phone = matchedStudent["phone"]?.GetValue<string>(),
+                                    email = matchedStudent["email"]?.GetValue<string>(),
+                                    address = matchedStudent["address"]?.GetValue<string>()
+                                };
+                                
+                                var updateRequest = createRequest($"{studentServiceUrl}/api/v1/students/{studentIdToLink}");
+                                updateRequest.Method = HttpMethod.Put;
+                                updateRequest.Content = JsonContent.Create(updatePayload);
+                                
+                                var updateResponse = await httpClient.SendAsync(updateRequest);
+                                if (updateResponse.IsSuccessStatusCode)
+                                {
+                                    // Successfully linked! Fetch the student profile again
+                                    var refetchRequest = createRequest($"{studentServiceUrl}/api/v1/students/by-user/{userId}");
+                                    var refetchResponse = await httpClient.SendAsync(refetchRequest);
+                                    if (refetchResponse.IsSuccessStatusCode)
+                                    {
+                                        profileJson = await refetchResponse.Content.ReadFromJsonAsync<JsonNode>();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log and ignore to fall back to not found
+            Console.WriteLine($"Self-healing failed: {ex.Message}");
+        }
     }
 
-    var profileJson = await profileResponse.Content.ReadFromJsonAsync<JsonNode>();
     if (profileJson == null)
     {
-        return Results.BadRequest(new { message = "Lỗi định dạng dữ liệu học viên" });
+        return Results.NotFound(new { message = "Không tìm thấy hồ sơ học viên" });
     }
 
     int studentId = 0;

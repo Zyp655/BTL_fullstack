@@ -24,6 +24,10 @@ public class UpdateStudentCommandHandler : IRequestHandler<UpdateStudentCommand,
         student.Phone = request.Phone;
         student.Email = request.Email;
         student.Address = request.Address;
+        if (request.UserId.HasValue)
+        {
+            student.UserId = request.UserId.Value;
+        }
         student.UpdatedAt = DateTime.UtcNow;
 
         _studentRepository.UpdateStudent(student);

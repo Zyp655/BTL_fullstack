@@ -1412,7 +1412,9 @@ new User
 
             new Payment { PaymentId = 26, StudentUserId = 17, ClassId = 8, TotalAmount = 3800000, PaidAmount = 3800000, RemainingAmount = 0, Status = "HoanTat", DueDate = new DateTime(2026, 5, 25, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 4, 25, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 5, 11, 0, 0, 0, DateTimeKind.Utc) },
             new Payment { PaymentId = 27, StudentUserId = 18, ClassId = 8, TotalAmount = 3800000, PaidAmount = 3800000, RemainingAmount = 0, Status = "HoanTat", DueDate = new DateTime(2026, 5, 25, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 4, 26, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 5, 13, 0, 0, 0, DateTimeKind.Utc) },
-            new Payment { PaymentId = 28, StudentUserId = 19, ClassId = 8, TotalAmount = 3800000, PaidAmount = 0, RemainingAmount = 3800000, Status = "ChuaTT", DueDate = new DateTime(2026, 5, 25, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 4, 27, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 4, 27, 0, 0, 0, DateTimeKind.Utc) }
+            new Payment { PaymentId = 28, StudentUserId = 19, ClassId = 8, TotalAmount = 3800000, PaidAmount = 0, RemainingAmount = 3800000, Status = "ChuaTT", DueDate = new DateTime(2026, 5, 25, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 4, 27, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 4, 27, 0, 0, 0, DateTimeKind.Utc) },
+            new Payment { PaymentId = 30, StudentUserId = 18, ClassId = 28, TotalAmount = 4500000, PaidAmount = 4500000, RemainingAmount = 0, Status = "HoanTat", DueDate = new DateTime(2026, 7, 30, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc) },
+            new Payment { PaymentId = 31, StudentUserId = 19, ClassId = 28, TotalAmount = 4500000, PaidAmount = 0, RemainingAmount = 4500000, Status = "ChuaTT", DueDate = new DateTime(2026, 7, 30, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc) }
         );
 
         // Seed transactions
@@ -1440,7 +1442,8 @@ new User
             new PaymentTransaction { TransactionId = 21, PaymentId = 27, Amount = 3800000, PaymentMethod = "ChuyenKhoan", Note = "Thanh toán học phí VUEJS-01", ReceivedByUserId = 1, PaidAt = new DateTime(2026, 5, 13, 0, 0, 0, DateTimeKind.Utc) },
             new PaymentTransaction { TransactionId = 22, PaymentId = 5, Amount = 2500000, PaymentMethod = "ChuyenKhoan", Note = "Thanh toán học phí Lập trình Web với React & Node.js", ReceivedByUserId = 1, PaidAt = new DateTime(2026, 3, 1, 0, 0, 0, DateTimeKind.Utc) },
             new PaymentTransaction { TransactionId = 23, PaymentId = 10, Amount = 3500000, PaymentMethod = "ChuyenKhoan", Note = "Thanh toán học phí TOEIC 600+", ReceivedByUserId = 1, PaidAt = new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc) },
-            new PaymentTransaction { TransactionId = 24, PaymentId = 19, Amount = 4500000, PaymentMethod = "ChuyenKhoan", Note = "Thanh toán học phí Tiếng Anh giao tiếp cơ bản", ReceivedByUserId = 1, PaidAt = new DateTime(2026, 5, 10, 0, 0, 0, DateTimeKind.Utc) }
+            new PaymentTransaction { TransactionId = 24, PaymentId = 19, Amount = 4500000, PaymentMethod = "ChuyenKhoan", Note = "Thanh toán học phí Tiếng Anh giao tiếp cơ bản", ReceivedByUserId = 1, PaidAt = new DateTime(2026, 5, 10, 0, 0, 0, DateTimeKind.Utc) },
+            new PaymentTransaction { TransactionId = 28, PaymentId = 30, Amount = 4500000, PaymentMethod = "ChuyenKhoan", Note = "Thanh toán học phí CS-NC-01", ReceivedByUserId = 1, PaidAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc) }
         );
     }
 }

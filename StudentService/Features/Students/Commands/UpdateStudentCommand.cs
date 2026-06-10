@@ -10,5 +10,6 @@ public record UpdateStudentCommand(
     string Gender,
     string? Phone,
     string? Email,
-    string? Address
+    string? Address,
+    int? UserId = null
 ) : IRequest<StudentDto?>;
