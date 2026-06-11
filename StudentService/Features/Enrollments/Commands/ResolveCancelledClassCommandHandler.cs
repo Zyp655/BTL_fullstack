@@ -91,6 +91,18 @@ public class ResolveCancelledClassCommandHandler : IRequestHandler<ResolveCancel
                 if (!res.NewClassId.HasValue)
                     throw new ArgumentException($"Chuyển lớp yêu cầu ID lớp mới cho học viên #{res.StudentId}");
 
+                var newClassInfo = await _courseServiceClient.GetClassInfo(res.NewClassId.Value);
+                if (newClassInfo == null)
+                    throw new KeyNotFoundException($"Không tìm thấy thông tin lớp học mới #{res.NewClassId.Value}");
+
+                // Check scheduling conflicts (excluding FromClassId which is request.ClassId)
+                var activeClassIds = await _context.Enrollments
+                    .Where(e => e.StudentId == res.StudentId && e.Status == "DangHoc" && e.ClassId != request.ClassId)
+                    .Select(e => e.ClassId)
+                    .ToListAsync(cancellationToken);
+
+                await StudentConflictHelper.CheckStudentConflicts(_courseServiceClient, res.NewClassId.Value, newClassInfo, activeClassIds);
+
                 // Deactivate old enrollment
                 enrollment.Status = "HuyBo";
                 _context.Enrollments.Update(enrollment);

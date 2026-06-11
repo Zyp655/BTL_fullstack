@@ -52,6 +52,14 @@ public class TransferClassCommandHandler : IRequestHandler<TransferClassCommand,
         if (targetClassInfo == null)
             throw new KeyNotFoundException("Không tìm thấy thông tin lớp học mới");
 
+        // Check scheduling conflicts (excluding FromClassId)
+        var activeClassIds = await _context.Enrollments
+            .Where(e => e.StudentId == request.StudentId && e.Status == "DangHoc" && e.ClassId != request.FromClassId)
+            .Select(e => e.ClassId)
+            .ToListAsync(cancellationToken);
+
+        await StudentConflictHelper.CheckStudentConflicts(_courseServiceClient, request.ToClassId, targetClassInfo, activeClassIds);
+
         // 4. Validate they belong to the same course
         if (oldClassInfo.CourseId != targetClassInfo.CourseId)
             throw new ArgumentException("Lớp học mới phải thuộc cùng một khóa học với lớp học hiện tại.");

@@ -1,6 +1,7 @@
 using MediatR;
 using CourseService.DTOs;
 using CourseService.Repositories;
+using CourseService.Common;
 using CourseService.Common.Exceptions;
 
 namespace CourseService.Features.Classes.Commands;
@@ -8,10 +9,14 @@ namespace CourseService.Features.Classes.Commands;
 public class UpdateClassCommandHandler : IRequestHandler<UpdateClassCommand, ClassDto>
 {
     private readonly IClassRepository _classRepository;
+    private readonly ConflictDetector _conflictDetector;
 
-    public UpdateClassCommandHandler(IClassRepository classRepository)
+    public UpdateClassCommandHandler(
+        IClassRepository classRepository,
+        ConflictDetector conflictDetector)
     {
         _classRepository = classRepository;
+        _conflictDetector = conflictDetector;
     }
 
     public async Task<ClassDto> Handle(UpdateClassCommand request, CancellationToken cancellationToken)
@@ -19,6 +24,18 @@ public class UpdateClassCommandHandler : IRequestHandler<UpdateClassCommand, Cla
         var cls = await _classRepository.GetClassByIdAsync(request.Id);
         if (cls == null)
             throw new NotFoundException("Lớp học", request.Id);
+
+        // If teacher is updated or dates are updated
+        if (request.TeacherId.HasValue && (request.TeacherId != cls.TeacherId || request.StartDate != cls.StartDate || request.EndDate != cls.EndDate))
+        {
+            await _conflictDetector.CheckClassTeacherConflictAsync(cls.ClassId, request.TeacherId.Value, request.TeacherName ?? "Giáo viên", request.StartDate, request.EndDate);
+        }
+
+        // If room is updated or dates are updated
+        if (!string.IsNullOrWhiteSpace(request.Room) && (request.Room != cls.Room || request.StartDate != cls.StartDate || request.EndDate != cls.EndDate))
+        {
+            await _conflictDetector.CheckClassRoomConflictAsync(cls.ClassId, request.Room, request.StartDate, request.EndDate);
+        }
 
         cls.ClassName = request.ClassName;
         cls.TeacherId = request.TeacherId;

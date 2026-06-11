@@ -4,6 +4,7 @@ using StudentService.Models;
 using StudentService.Repositories;
 using StudentService.Services;
 using MassTransit;
+using System.Linq;
 
 namespace StudentService.Features.Enrollments.Commands;
 
@@ -42,6 +43,11 @@ public class CreateEnrollmentCommandHandler : IRequestHandler<CreateEnrollmentCo
 
         if (await _enrollmentRepository.HasActiveEnrollmentAsync(request.StudentId, request.ClassId))
             throw new ArgumentException("Học viên đã đăng ký lớp này");
+
+        // Check scheduling conflicts
+        var activeEnrollments = await _enrollmentRepository.GetEnrollmentsAsync(null, request.StudentId, "DangHoc", 1, 100);
+        var activeClassIds = activeEnrollments.Select(e => e.ClassId).ToList();
+        await StudentConflictHelper.CheckStudentConflicts(_courseServiceClient, request.ClassId, classInfo, activeClassIds);
 
         var enrollment = new Enrollment
         {

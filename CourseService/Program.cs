@@ -31,6 +31,7 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
 // Register Validators
 builder.Services.AddScoped<IClassStatusValidator, ClassStatusValidator>();
+builder.Services.AddScoped<CourseService.Common.ConflictDetector>();
 
 // Register MediatR & Behaviors
 builder.Services.AddMediatR(cfg =>

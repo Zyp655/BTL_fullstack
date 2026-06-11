@@ -72,4 +72,17 @@ public class ClassInfoDto
     public int MaxStudents { get; set; }
     public int CurrentStudents { get; set; }
     public string Status { get; set; } = string.Empty;
+    public DateTime? StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
+    public List<ScheduleInfoDto> Schedules { get; set; } = new();
+}
+
+public class ScheduleInfoDto
+{
+    public int ScheduleId { get; set; }
+    public int ClassId { get; set; }
+    public int DayOfWeek { get; set; }
+    public string Session { get; set; } = string.Empty;
+    public string StartTime { get; set; } = string.Empty;
+    public string EndTime { get; set; } = string.Empty;
 }

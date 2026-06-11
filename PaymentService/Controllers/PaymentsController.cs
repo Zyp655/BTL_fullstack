@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using PaymentService.DTOs;
 using PaymentService.Features.Payments.Commands;
 using PaymentService.Features.Payments.Queries;
+using PaymentService.Repositories;
+using PaymentService.Services;
 using MediatR;
 using Asp.Versioning;
 using Microsoft.Extensions.Configuration;
@@ -17,11 +19,19 @@ public class PaymentsController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly IConfiguration _configuration;
+    private readonly IPaymentRepository _paymentRepository;
+    private readonly ICourseServiceClient _courseServiceClient;
 
-    public PaymentsController(IMediator mediator, IConfiguration configuration)
+    public PaymentsController(
+        IMediator mediator, 
+        IConfiguration configuration, 
+        IPaymentRepository paymentRepository,
+        ICourseServiceClient courseServiceClient)
     {
         _mediator = mediator;
         _configuration = configuration;
+        _paymentRepository = paymentRepository;
+        _courseServiceClient = courseServiceClient;
     }
 
     /// <summary>
@@ -225,4 +235,206 @@ public class PaymentsController : ControllerBase
 
         return null;
     }
+
+    /// <summary>
+    /// Tạo thông tin thanh toán động qua cổng chuyển khoản (PayOS, VNPAY, MoMo, SePay)
+    /// </summary>
+    [HttpGet("{id}/checkout")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetCheckoutInfo(int id, [FromQuery] string gateway = "SePay")
+    {
+        var payment = await _paymentRepository.GetPaymentByIdAsync(id);
+        if (payment == null)
+            return NotFound(new { message = "Không tìm thấy hóa đơn học phí" });
+
+        if (payment.Status == "HoanTat")
+            return BadRequest(new { message = "Hóa đơn này đã được thanh toán hoàn tất" });
+
+        string className = "Chờ xếp lớp";
+        string courseName = "";
+
+        if (payment.ClassId < 0)
+        {
+            var courseId = -payment.ClassId;
+            var courseInfo = await _courseServiceClient.GetCourseInfo(courseId);
+            if (courseInfo != null)
+            {
+                courseName = courseInfo.CourseName;
+            }
+        }
+        else if (payment.ClassId > 0)
+        {
+            var classInfo = await _courseServiceClient.GetClassInfo(payment.ClassId);
+            if (classInfo != null)
+            {
+                className = classInfo.ClassName;
+                courseName = classInfo.CourseName;
+            }
+        }
+
+        var bankId = _configuration["Sepay:BankId"] ?? "MB";
+        var accountNo = _configuration["Sepay:AccountNo"] ?? "0366265607";
+        var accountName = _configuration["Sepay:AccountName"] ?? "NGUYEN DINH MINH HIEU";
+        var bankName = _configuration["Sepay:BankName"] ?? "MBBank";
+
+        var amount = payment.RemainingAmount;
+        var code = $"PAY{payment.PaymentId}";
+
+        string checkoutUrl = $"/checkout-mock?gateway={gateway}&id={payment.PaymentId}&amount={amount}";
+        string qrUrl = "";
+
+        switch (gateway.ToLower())
+        {
+            case "sepay":
+                qrUrl = $"https://qr.sepay.vn/img?acc={accountNo}&bank={bankId}&amount={amount}&des={code}&template=compact";
+                break;
+            case "payos":
+                qrUrl = $"https://img.vietqr.io/image/{bankId}-{accountNo}-compact.png?amount={amount}&addInfo={code}&accountName={Uri.EscapeDataString(accountName)}";
+                break;
+            case "vnpay":
+                qrUrl = $"https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://vnpay.vn/payment/gate?txnref={code}%26amount={amount}";
+                break;
+            case "momo":
+                var momoData = $"2|99|0366265607|NGUYEN%20DINH%20MINH%20HIEU|hieu.nguyen@gmail.com|0|0|{amount}|{code}|transfer_my_momo";
+                qrUrl = $"https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={Uri.EscapeDataString(momoData)}";
+                break;
+            default:
+                qrUrl = $"https://qr.sepay.vn/img?acc={accountNo}&bank={bankId}&amount={amount}&des={code}&template=compact";
+                break;
+        }
+
+        return Ok(new {
+            paymentId = payment.PaymentId,
+            classId = payment.ClassId,
+            className = className,
+            courseName = courseName,
+            remainingAmount = amount,
+            paymentCode = code,
+            gateway = gateway,
+            checkoutUrl = checkoutUrl,
+            qrUrl = qrUrl,
+            bankId = bankId,
+            accountNo = accountNo,
+            accountName = accountName,
+            bankName = bankName
+        });
+    }
+
+    /// <summary>
+    /// Webhook nhận callback thanh toán tự động giả lập PayOS
+    /// </summary>
+    [HttpPost("callback/payos")]
+    [AllowAnonymous]
+    public async Task<IActionResult> PayosCallback([FromBody] PayosCallbackDto dto)
+    {
+        if (dto == null || string.IsNullOrEmpty(dto.OrderCode))
+            return BadRequest(new { message = "Dữ liệu không hợp lệ" });
+
+        var paymentIdStr = dto.OrderCode.ToUpper().Replace("PAY", "").Trim();
+        if (!int.TryParse(paymentIdStr, out var paymentId))
+            return BadRequest(new { message = "Không phân tích được ID hóa đơn" });
+
+        try
+        {
+            var command = new AddTransactionCommand(
+                PaymentId: paymentId,
+                Amount: dto.Amount,
+                PaymentMethod: "ChuyenKhoan",
+                Note: $"Thanh toán tự động qua PayOS. Code: {dto.OrderCode}",
+                ReceivedByUserId: 1
+            );
+            var result = await _mediator.Send(command);
+            return Ok(new { success = true, message = "PayOS Callback Success", transaction = result });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Webhook nhận callback thanh toán tự động giả lập VNPAY (IPN)
+    /// </summary>
+    [HttpGet("callback/vnpay")]
+    [AllowAnonymous]
+    public async Task<IActionResult> VnpayCallback([FromQuery] string vnp_TxnRef, [FromQuery] decimal vnp_Amount, [FromQuery] string vnp_ResponseCode)
+    {
+        if (string.IsNullOrEmpty(vnp_TxnRef))
+            return BadRequest(new { message = "Dữ liệu không hợp lệ" });
+
+        var paymentIdStr = vnp_TxnRef.ToUpper().Replace("PAY", "").Trim();
+        if (!int.TryParse(paymentIdStr, out var paymentId))
+            return BadRequest(new { message = "Không phân tích được ID hóa đơn" });
+
+        if (vnp_ResponseCode != "00")
+            return BadRequest(new { message = "Giao dịch VNPAY thất bại" });
+
+        try
+        {
+            var realAmount = vnp_Amount / 100;
+            var command = new AddTransactionCommand(
+                PaymentId: paymentId,
+                Amount: realAmount,
+                PaymentMethod: "TheTD",
+                Note: $"Thanh toán tự động qua VNPAY-QR.",
+                ReceivedByUserId: 1
+            );
+            var result = await _mediator.Send(command);
+            return Ok(new { success = true, message = "VNPAY IPN Callback Success", transaction = result });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Webhook nhận callback thanh toán tự động giả lập MoMo
+    /// </summary>
+    [HttpPost("callback/momo")]
+    [AllowAnonymous]
+    public async Task<IActionResult> MomoCallback([FromBody] MomoCallbackDto dto)
+    {
+        if (dto == null || string.IsNullOrEmpty(dto.OrderId))
+            return BadRequest(new { message = "Dữ liệu không hợp lệ" });
+
+        var paymentIdStr = dto.OrderId.ToUpper().Replace("PAY", "").Trim();
+        if (!int.TryParse(paymentIdStr, out var paymentId))
+            return BadRequest(new { message = "Không phân tích được ID hóa đơn" });
+
+        if (dto.ResultCode != 0)
+            return BadRequest(new { message = "Giao dịch MoMo thất bại" });
+
+        try
+        {
+            var command = new AddTransactionCommand(
+                PaymentId: paymentId,
+                Amount: dto.Amount,
+                PaymentMethod: "ViDienTu",
+                Note: $"Thanh toán tự động qua Ví MoMo. Mã GD: {dto.TransId}",
+                ReceivedByUserId: 1
+            );
+            var result = await _mediator.Send(command);
+            return Ok(new { success = true, message = "MoMo IPN Callback Success", transaction = result });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+}
+
+public class PayosCallbackDto
+{
+    public string OrderCode { get; set; } = string.Empty;
+    public decimal Amount { get; set; }
+    public string Description { get; set; } = string.Empty;
+}
+
+public class MomoCallbackDto
+{
+    public string OrderId { get; set; } = string.Empty;
+    public decimal Amount { get; set; }
+    public long TransId { get; set; }
+    public int ResultCode { get; set; }
 }
