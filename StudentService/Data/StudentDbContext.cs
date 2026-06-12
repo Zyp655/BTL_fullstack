@@ -1297,7 +1297,7 @@ new Student
             new Enrollment { EnrollmentId = 13, StudentId = 4, ClassId = 4, Status = "DangHoc", EnrolledAt = new DateTime(2026, 4, 22, 0, 0, 0, DateTimeKind.Utc) },
             new Enrollment { EnrollmentId = 14, StudentId = 6, ClassId = 4, Status = "DangHoc", EnrolledAt = new DateTime(2026, 4, 25, 0, 0, 0, DateTimeKind.Utc) },
 
-            new Enrollment { EnrollmentId = 15, StudentId = 1, ClassId = 5, Status = "DangHoc", EnrolledAt = new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Enrollment { EnrollmentId = 15, StudentId = 7, ClassId = 5, Status = "DangHoc", EnrolledAt = new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc) },
             new Enrollment { EnrollmentId = 16, StudentId = 2, ClassId = 5, Status = "DangHoc", EnrolledAt = new DateTime(2026, 5, 2, 0, 0, 0, DateTimeKind.Utc) },
             new Enrollment { EnrollmentId = 17, StudentId = 3, ClassId = 5, Status = "DangHoc", EnrolledAt = new DateTime(2026, 5, 3, 0, 0, 0, DateTimeKind.Utc) },
             new Enrollment { EnrollmentId = 18, StudentId = 4, ClassId = 5, Status = "DangHoc", EnrolledAt = new DateTime(2026, 5, 4, 0, 0, 0, DateTimeKind.Utc) },
@@ -1325,6 +1325,10 @@ new Student
             for (int s = 1; s <= 15; s++)
             {
                 int studentId = ((i - 1) * 15 + (s - 1)) % 90 + 1;
+                if (studentId == 1)
+                {
+                    studentId = 20;
+                }
                 enrollments.Add(new Enrollment
                 {
                     EnrollmentId = enrollmentIdCounter++,

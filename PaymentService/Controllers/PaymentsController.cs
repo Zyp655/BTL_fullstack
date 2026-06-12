@@ -189,7 +189,13 @@ public class PaymentsController : ControllerBase
     {
         if (!string.IsNullOrEmpty(code))
         {
-            var codeClean = code.ToUpper().Replace("PAY", "").Replace("PAYMENTID", "").Trim();
+            var codeClean = code.ToUpper()
+                .Replace("SEPAY", "")
+                .Replace("PAYMENTID", "")
+                .Replace("PAYMENT", "")
+                .Replace("PAY", "")
+                .Replace("SP", "")
+                .Trim();
             if (int.TryParse(codeClean, out var id))
                 return id;
         }
@@ -199,38 +205,25 @@ public class PaymentsController : ControllerBase
 
         var contentUpper = content.ToUpper();
         
-        // Search for PAYxx (e.g. PAY4)
-        var matchIndex = contentUpper.IndexOf("PAY");
-        if (matchIndex >= 0)
+        // List of prefixes to scan in order of decreasing length
+        string[] prefixes = { "PAYMENTID", "PAYMENT", "SEPAY", "PAY", "SP" };
+        foreach (var prefix in prefixes)
         {
-            var sub = contentUpper.Substring(matchIndex + 3);
-            var digitStr = "";
-            foreach (var c in sub)
+            var matchIndex = contentUpper.IndexOf(prefix);
+            if (matchIndex >= 0)
             {
-                if (char.IsDigit(c))
-                    digitStr += c;
-                else if (digitStr.Length > 0)
-                    break;
+                var sub = contentUpper.Substring(matchIndex + prefix.Length);
+                var digitStr = "";
+                foreach (var c in sub)
+                {
+                    if (char.IsDigit(c))
+                        digitStr += c;
+                    else if (digitStr.Length > 0)
+                        break;
+                }
+                if (int.TryParse(digitStr, out var id))
+                    return id;
             }
-            if (int.TryParse(digitStr, out var id))
-                return id;
-        }
-
-        // Search for PAYMENTID xx
-        var matchIndexId = contentUpper.IndexOf("PAYMENTID");
-        if (matchIndexId >= 0)
-        {
-            var sub = contentUpper.Substring(matchIndexId + 9);
-            var digitStr = "";
-            foreach (var c in sub)
-            {
-                if (char.IsDigit(c))
-                    digitStr += c;
-                else if (digitStr.Length > 0)
-                    break;
-            }
-            if (int.TryParse(digitStr, out var id))
-                return id;
         }
 
         return null;
