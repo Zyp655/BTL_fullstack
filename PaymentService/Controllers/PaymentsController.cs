@@ -144,22 +144,40 @@ public class PaymentsController : ControllerBase
         if (!string.IsNullOrEmpty(apiKey))
         {
             var authHeader = Request.Headers["Authorization"].ToString();
-            Console.WriteLine($"[DEBUG SEPAY] Received Authorization Header: '{authHeader}'");
-            Console.WriteLine($"[DEBUG SEPAY] Expected WebhookToken: '{apiKey}'");
-            if (string.IsNullOrEmpty(authHeader) || 
-                (!authHeader.Equals($"Apikey {apiKey}", StringComparison.OrdinalIgnoreCase) && 
-                 !authHeader.Equals($"Bearer {apiKey}", StringComparison.OrdinalIgnoreCase)))
+            if (!string.IsNullOrEmpty(authHeader))
+            {
+                Console.WriteLine($"[DEBUG SEPAY] Received Authorization Header: '{authHeader}'");
+                Console.WriteLine($"[DEBUG SEPAY] Expected WebhookToken: '{apiKey}'");
+            }
+
+            bool isSePayToken = !string.IsNullOrEmpty(authHeader) && 
+                (authHeader.Equals($"Apikey {apiKey}", StringComparison.OrdinalIgnoreCase) || 
+                 authHeader.Equals($"Bearer {apiKey}", StringComparison.OrdinalIgnoreCase));
+                 
+            bool isLocalJwt = !string.IsNullOrEmpty(authHeader) && 
+                authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) && 
+                !authHeader.Equals($"Bearer {apiKey}", StringComparison.OrdinalIgnoreCase);
+
+            if (!isSePayToken && !isLocalJwt)
             {
                 Console.WriteLine($"[DEBUG SEPAY] Authentication FAILED!");
                 return Unauthorized(new { message = "Xác thực Webhook thất bại" });
             }
-            Console.WriteLine($"[DEBUG SEPAY] Authentication SUCCESS!");
+            Console.WriteLine($"[DEBUG SEPAY] Authentication SUCCESS (isSePayToken={isSePayToken}, isLocalJwt={isLocalJwt})!");
         }
 
         var paymentId = ParsePaymentId(transactionContent, code);
         if (!paymentId.HasValue)
         {
             return BadRequest(new { message = "Không thể phân tích PaymentId từ nội dung chuyển khoản. Cú pháp mẫu: PAY[Mã phiếu] hoặc PaymentId [Mã phiếu]" });
+        }
+
+        // Check if the payment is already completed to ensure idempotency and return 200 OK
+        var payment = await _paymentRepository.GetPaymentByIdAsync(paymentId.Value);
+        if (payment != null && payment.Status == "HoanTat")
+        {
+            Console.WriteLine($"[DEBUG SEPAY] Payment {paymentId.Value} was already completed. Returning 200 OK (idempotent).");
+            return Ok(new { success = true, message = "Phiếu học phí đã hoàn tất từ trước", idempotent = true });
         }
 
         try
