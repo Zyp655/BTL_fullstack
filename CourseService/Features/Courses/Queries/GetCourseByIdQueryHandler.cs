@@ -25,6 +25,7 @@ public class GetCourseByIdQueryHandler : IRequestHandler<GetCourseByIdQuery, Cou
             CourseId = course.CourseId,
             CourseName = course.CourseName,
             Description = course.Description,
+            ImageUrl = course.ImageUrl,
             Level = course.Level,
             Category = course.Category,
             Fee = course.Fee,

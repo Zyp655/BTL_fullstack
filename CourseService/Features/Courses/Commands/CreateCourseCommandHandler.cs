@@ -23,6 +23,7 @@ public class CreateCourseCommandHandler : IRequestHandler<CreateCourseCommand, C
         {
             CourseName = request.CourseName,
             Description = request.Description,
+            ImageUrl = request.ImageUrl,
             Level = request.Level,
             Category = request.Category,
             Fee = request.Fee,
@@ -44,6 +45,7 @@ public class CreateCourseCommandHandler : IRequestHandler<CreateCourseCommand, C
             CourseId = course.CourseId,
             CourseName = course.CourseName,
             Description = course.Description,
+            ImageUrl = course.ImageUrl,
             Level = course.Level,
             Category = course.Category,
             Fee = course.Fee,

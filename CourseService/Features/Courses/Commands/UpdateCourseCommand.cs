@@ -7,6 +7,7 @@ public record UpdateCourseCommand(
     int Id,
     string CourseName,
     string? Description,
+    string? ImageUrl,
     string Level,
     string Category,
     decimal Fee,

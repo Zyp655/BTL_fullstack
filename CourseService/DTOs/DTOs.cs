@@ -5,6 +5,7 @@ public class CreateCourseDto
 {
     public string CourseName { get; set; } = string.Empty;
     public string? Description { get; set; }
+    public string? ImageUrl { get; set; }
     public string Level { get; set; } = "Beginner";
     public string Category { get; set; } = "NgoaiNgu";
     public decimal Fee { get; set; }
@@ -15,6 +16,7 @@ public class UpdateCourseDto
 {
     public string CourseName { get; set; } = string.Empty;
     public string? Description { get; set; }
+    public string? ImageUrl { get; set; }
     public string Level { get; set; } = "Beginner";
     public string Category { get; set; } = "NgoaiNgu";
     public decimal Fee { get; set; }
@@ -27,6 +29,7 @@ public class CourseDto
     public int CourseId { get; set; }
     public string CourseName { get; set; } = string.Empty;
     public string? Description { get; set; }
+    public string? ImageUrl { get; set; }
     public string Level { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
     public decimal Fee { get; set; }

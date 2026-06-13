@@ -15,6 +15,9 @@ public class Course
     [MaxLength(1000)]
     public string? Description { get; set; }
 
+    [MaxLength(1000)]
+    public string? ImageUrl { get; set; }
+
     [MaxLength(50)]
     public string Level { get; set; } = "Beginner"; // Beginner, Intermediate, Advanced
 

@@ -25,6 +25,7 @@ public class UpdateCourseCommandHandler : IRequestHandler<UpdateCourseCommand, C
 
         course.CourseName = request.CourseName;
         course.Description = request.Description;
+        course.ImageUrl = request.ImageUrl;
         course.Level = request.Level;
         course.Category = request.Category;
         course.Fee = request.Fee;
@@ -44,6 +45,7 @@ public class UpdateCourseCommandHandler : IRequestHandler<UpdateCourseCommand, C
             CourseId = course.CourseId,
             CourseName = course.CourseName,
             Description = course.Description,
+            ImageUrl = course.ImageUrl,
             Level = course.Level,
             Category = course.Category,
             Fee = course.Fee,

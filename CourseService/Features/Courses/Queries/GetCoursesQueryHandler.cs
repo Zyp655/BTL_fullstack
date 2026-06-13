@@ -33,6 +33,7 @@ public class GetCoursesQueryHandler : IRequestHandler<GetCoursesQuery, PagedResu
                 CourseId = c.CourseId,
                 CourseName = c.CourseName,
                 Description = c.Description,
+                ImageUrl = c.ImageUrl,
                 Level = c.Level,
                 Category = c.Category,
                 Fee = c.Fee,
