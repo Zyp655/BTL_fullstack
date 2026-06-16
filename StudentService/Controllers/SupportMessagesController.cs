@@ -36,7 +36,7 @@ public class SupportMessagesController : ControllerBase
     /// <summary>
     /// Student sends a support message or class transfer request
     /// </summary>
-    [Authorize(Roles = "Admin,HocVien")]
+    [Authorize(Roles = "Admin,HocVien,GiaoVien")]
     [HttpPost]
     public async Task<ActionResult<SupportMessageDto>> CreateMessage(CreateSupportMessageDto dto)
     {
