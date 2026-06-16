@@ -28,7 +28,28 @@ public class PaymentRepository : IPaymentRepository
             query = query.Where(p => p.StudentUserId == studentUserId.Value);
 
         if (!string.IsNullOrWhiteSpace(search))
-            query = query.Where(p => p.StudentUser != null && p.StudentUser.FullName.Contains(search));
+        {
+            var searchClean = search.Trim();
+            int? searchPaymentId = null;
+            
+            var cleanStr = searchClean.ToUpper()
+                .Replace("PAY-", "")
+                .Replace("PAY", "")
+                .Replace("PAYMENT-", "")
+                .Replace("PAYMENT", "")
+                .TrimStart('0')
+                .Trim();
+
+            if (int.TryParse(cleanStr, out var id))
+            {
+                searchPaymentId = id;
+            }
+
+            query = query.Where(p => 
+                (p.StudentUser != null && p.StudentUser.FullName.Contains(search)) ||
+                (searchPaymentId.HasValue && p.PaymentId == searchPaymentId.Value)
+            );
+        }
 
         return await query
             .OrderByDescending(p => p.CreatedAt)
@@ -48,7 +69,28 @@ public class PaymentRepository : IPaymentRepository
             query = query.Where(p => p.StudentUserId == studentUserId.Value);
 
         if (!string.IsNullOrWhiteSpace(search))
-            query = query.Where(p => p.StudentUser != null && p.StudentUser.FullName.Contains(search));
+        {
+            var searchClean = search.Trim();
+            int? searchPaymentId = null;
+            
+            var cleanStr = searchClean.ToUpper()
+                .Replace("PAY-", "")
+                .Replace("PAY", "")
+                .Replace("PAYMENT-", "")
+                .Replace("PAYMENT", "")
+                .TrimStart('0')
+                .Trim();
+
+            if (int.TryParse(cleanStr, out var id))
+            {
+                searchPaymentId = id;
+            }
+
+            query = query.Where(p => 
+                (p.StudentUser != null && p.StudentUser.FullName.Contains(search)) ||
+                (searchPaymentId.HasValue && p.PaymentId == searchPaymentId.Value)
+            );
+        }
 
         return await query.CountAsync();
     }
