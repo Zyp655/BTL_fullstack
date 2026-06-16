@@ -30,6 +30,7 @@ public class GetCourseByIdQueryHandler : IRequestHandler<GetCourseByIdQuery, Cou
             Category = course.Category,
             Fee = course.Fee,
             TotalSessions = course.TotalSessions,
+            DurationWeeks = course.DurationWeeks,
             IsActive = course.IsActive,
             CreatedAt = course.CreatedAt,
             UpdatedAt = course.UpdatedAt,

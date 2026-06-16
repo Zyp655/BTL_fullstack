@@ -3,9 +3,12 @@ using StudentService.DTOs;
 using StudentService.Features.Attendances.Commands;
 using StudentService.Features.Attendances.Queries;
 using StudentService.Services;
+using StudentService.Data;
 using MediatR;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace StudentService.Controllers;
 
@@ -17,11 +20,13 @@ public class AttendancesController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly ICourseServiceClient _courseServiceClient;
+    private readonly StudentDbContext _context;
 
-    public AttendancesController(IMediator mediator, ICourseServiceClient courseServiceClient)
+    public AttendancesController(IMediator mediator, ICourseServiceClient courseServiceClient, StudentDbContext context)
     {
         _mediator = mediator;
         _courseServiceClient = courseServiceClient;
+        _context = context;
     }
 
     /// <summary>
@@ -117,5 +122,45 @@ public class AttendancesController : ControllerBase
     {
         var result = await _mediator.Send(new GetAttendanceSummaryQuery(studentId));
         return Ok(result);
+    }
+    /// <summary>
+    /// Lấy thống kê số buổi dạy và số lượt học viên tham gia (cho tính lương)
+    /// </summary>
+    [AllowAnonymous]
+    [HttpPost("stats")]
+    public async Task<ActionResult<TeacherAttendanceStatsDto>> GetAttendanceStats([FromBody] AttendanceStatsRequest request)
+    {
+        if (request.ClassIds == null || !request.ClassIds.Any())
+        {
+            return Ok(new TeacherAttendanceStatsDto { SessionsTaught = 0, TotalStudentSessions = 0 });
+        }
+
+        var enrollments = await _context.Enrollments
+            .Where(e => request.ClassIds.Contains(e.ClassId))
+            .ToListAsync();
+        
+        var enrollmentIds = enrollments.Select(e => e.EnrollmentId).ToList();
+
+        var attendances = await _context.Attendances
+            .Where(a => enrollmentIds.Contains(a.EnrollmentId) 
+                        && a.SessionDate.Month == request.Month 
+                        && a.SessionDate.Year == request.Year)
+            .ToListAsync();
+
+        var sessions = attendances
+            .Join(enrollments, a => a.EnrollmentId, e => e.EnrollmentId, (a, e) => new { e.ClassId, Date = a.SessionDate.Date })
+            .Distinct()
+            .ToList();
+
+        int sessionsTaught = sessions.Count;
+
+        int totalStudentSessions = attendances
+            .Count(a => a.Status == "CoMat" || a.Status == "DiTre");
+
+        return Ok(new TeacherAttendanceStatsDto
+        {
+            SessionsTaught = sessionsTaught,
+            TotalStudentSessions = totalStudentSessions
+        });
     }
 }

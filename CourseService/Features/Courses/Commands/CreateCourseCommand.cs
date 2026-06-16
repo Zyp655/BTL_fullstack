@@ -10,5 +10,6 @@ public record CreateCourseCommand(
     string Level,
     string Category,
     decimal Fee,
-    int TotalSessions
+    int TotalSessions,
+    int DurationWeeks
 ) : IRequest<CourseDto>;

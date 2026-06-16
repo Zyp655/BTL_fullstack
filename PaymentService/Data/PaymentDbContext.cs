@@ -16,6 +16,8 @@ public class PaymentDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<PaymentTransaction> PaymentTransactions => Set<PaymentTransaction>();
+    public DbSet<TeacherSalaryConfig> TeacherSalaryConfigs => Set<TeacherSalaryConfig>();
+    public DbSet<SalarySlip> SalarySlips => Set<SalarySlip>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -53,12 +55,46 @@ public class PaymentDbContext : DbContext
                   .OnDelete(DeleteBehavior.Cascade);
         });
 
+        // TeacherSalaryConfig
+        modelBuilder.Entity<TeacherSalaryConfig>(entity =>
+        {
+            entity.HasKey(e => e.UserId);
+            entity.HasOne(e => e.User)
+                  .WithOne()
+                  .HasForeignKey<TeacherSalaryConfig>(e => e.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // SalarySlip
+        modelBuilder.Entity<SalarySlip>(entity =>
+        {
+            entity.HasKey(e => e.SalarySlipId);
+            entity.HasIndex(e => new { e.TeacherId, e.Month, e.Year }).IsUnique();
+            entity.HasOne(e => e.Teacher)
+                  .WithMany()
+                  .HasForeignKey(e => e.TeacherId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
         // Seed data
         SeedData(modelBuilder);
     }
 
     private void SeedData(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<TeacherSalaryConfig>().HasData(
+            new TeacherSalaryConfig { UserId = 2, BaseSalary = 0, RatePerSession = 300000, StudentAllowanceRate = 0, Notes = "Mặc định Nguyễn Văn An" },
+            new TeacherSalaryConfig { UserId = 3, BaseSalary = 0, RatePerSession = 300000, StudentAllowanceRate = 0, Notes = "Mặc định Trần Thị Bình" },
+            new TeacherSalaryConfig { UserId = 4, BaseSalary = 0, RatePerSession = 350000, StudentAllowanceRate = 0, Notes = "Mặc định Lê Văn Cường (Cao cấp)" },
+            new TeacherSalaryConfig { UserId = 5, BaseSalary = 2000000, RatePerSession = 400000, StudentAllowanceRate = 10000, Notes = "Hợp đồng Lê Thị Hoa (Cố định + Phụ cấp)" },
+            new TeacherSalaryConfig { UserId = 6, BaseSalary = 0, RatePerSession = 300000, StudentAllowanceRate = 0, Notes = "Mặc định Phạm Văn Khánh" },
+            new TeacherSalaryConfig { UserId = 7, BaseSalary = 0, RatePerSession = 300000, StudentAllowanceRate = 0, Notes = "Mặc định Trần Thị Lan" },
+            new TeacherSalaryConfig { UserId = 8, BaseSalary = 0, RatePerSession = 300000, StudentAllowanceRate = 0, Notes = "Mặc định Nguyễn Hoàng Nam" },
+            new TeacherSalaryConfig { UserId = 9, BaseSalary = 0, RatePerSession = 300000, StudentAllowanceRate = 0, Notes = "Mặc định Trần Thị Mai" },
+            new TeacherSalaryConfig { UserId = 10, BaseSalary = 0, RatePerSession = 300000, StudentAllowanceRate = 0, Notes = "Mặc định Phạm Việt Anh" },
+            new TeacherSalaryConfig { UserId = 11, BaseSalary = 0, RatePerSession = 300000, StudentAllowanceRate = 0, Notes = "Mặc định Hoàng Đức Duy" }
+        );
+
         // Admin account (password: admin123)
         modelBuilder.Entity<User>().HasData(
             new User
@@ -74,7 +110,7 @@ public class PaymentDbContext : DbContext
                 CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
             },
-new User
+            new User
             {
                 UserId = 2,
                 Username = "nguyenvanan",
@@ -83,6 +119,8 @@ new User
                 Email = "nguyenvanan@trainingcenter.vn",
                 Phone = "0901000002",
                 Role = "GiaoVien",
+                Specialization = "NgoaiNgu",
+                Degree = "Thạc sĩ",
                 IsActive = true,
                 CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
@@ -96,6 +134,8 @@ new User
                 Email = "tranthibinh@trainingcenter.vn",
                 Phone = "0901000003",
                 Role = "GiaoVien",
+                Specialization = "NgoaiNgu",
+                Degree = "Cử nhân",
                 IsActive = true,
                 CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
@@ -109,6 +149,8 @@ new User
                 Email = "levancuong@trainingcenter.vn",
                 Phone = "0901000004",
                 Role = "GiaoVien",
+                Specialization = "TinHoc",
+                Degree = "Kỹ sư",
                 IsActive = true,
                 CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
@@ -122,6 +164,8 @@ new User
                 Email = "lethihoa@trainingcenter.vn",
                 Phone = "0901000008",
                 Role = "GiaoVien",
+                Specialization = "TinHoc",
+                Degree = "Cử nhân",
                 IsActive = true,
                 CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
@@ -135,6 +179,8 @@ new User
                 Email = "phamvankhanh@trainingcenter.vn",
                 Phone = "0901000009",
                 Role = "GiaoVien",
+                Specialization = "TinHoc",
+                Degree = "Thạc sĩ",
                 IsActive = true,
                 CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
@@ -148,6 +194,8 @@ new User
                 Email = "tranthilan@trainingcenter.vn",
                 Phone = "0901000010",
                 Role = "GiaoVien",
+                Specialization = "NgoaiNgu",
+                Degree = "Thạc sĩ",
                 IsActive = true,
                 CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
@@ -161,6 +209,8 @@ new User
                 Email = "nguyenhoangnam@trainingcenter.vn",
                 Phone = "0901000021",
                 Role = "GiaoVien",
+                Specialization = "KyNang",
+                Degree = "Thạc sĩ",
                 IsActive = true,
                 CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
@@ -174,6 +224,8 @@ new User
                 Email = "tranthimai@trainingcenter.vn",
                 Phone = "0901000022",
                 Role = "GiaoVien",
+                Specialization = "NgoaiNgu",
+                Degree = "Cử nhân",
                 IsActive = true,
                 CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
@@ -187,6 +239,8 @@ new User
                 Email = "phamvietanh@trainingcenter.vn",
                 Phone = "0901000023",
                 Role = "GiaoVien",
+                Specialization = "TinHoc",
+                Degree = "Kỹ sư",
                 IsActive = true,
                 CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
@@ -200,6 +254,8 @@ new User
                 Email = "hoangducduy@trainingcenter.vn",
                 Phone = "0901000024",
                 Role = "GiaoVien",
+                Specialization = "KyNang",
+                Degree = "Cử nhân",
                 IsActive = true,
                 CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)

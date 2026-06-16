@@ -36,6 +36,7 @@ public class ResultRepository : IResultRepository
         return await _context.Enrollments
             .Include(e => e.Student)
             .Include(e => e.ExamResults)
+            .Include(e => e.Attendances)
             .Where(e => e.ClassId == classId && e.Status == "DangHoc")
             .ToListAsync();
     }

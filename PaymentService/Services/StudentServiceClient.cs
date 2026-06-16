@@ -42,6 +42,24 @@ public class StudentServiceClient : IStudentServiceClient
             return new();
         }
     }
+
+    public async Task<TeacherAttendanceStatsDto?> GetAttendanceStats(List<int> classIds, int month, int year)
+    {
+        try
+        {
+            var requestBody = new { ClassIds = classIds, Month = month, Year = year };
+            var response = await _httpClient.PostAsJsonAsync("/api/v1/attendances/stats", requestBody);
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<TeacherAttendanceStatsDto>();
+            }
+            return null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
 }
 
 // DTO for inter-service communication

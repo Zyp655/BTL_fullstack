@@ -44,6 +44,23 @@ public class CourseServiceClient : ICourseServiceClient
             return null;
         }
     }
+
+    public async Task<List<ClassInfoDto>> GetClassesByTeacher(int teacherId)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync($"/api/v1/classes/teacher/{teacherId}");
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<List<ClassInfoDto>>() ?? new();
+            }
+            return new();
+        }
+        catch
+        {
+            return new();
+        }
+    }
 }
 
 // DTOs for inter-service communication

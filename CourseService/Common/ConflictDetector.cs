@@ -21,7 +21,7 @@ public class ConflictDetector
     {
         var query = _context.Schedules
             .Include(s => s.Class)
-            .Where(s => s.Class!.TeacherId == teacherId 
+            .Where(s => (s.Class!.TeacherId == teacherId || s.Class.TeacherId2 == teacherId) 
                         && s.Class.ClassId != currentClassId 
                         && (s.Class.Status == "Opened" || s.Class.Status == "InProgress"));
 
@@ -45,6 +45,25 @@ public class ConflictDetector
 
     public async Task CheckRoomConflictAsync(string room, int currentClassId, int dayOfWeek, TimeSpan startTime, TimeSpan endTime, DateTime? startDate, DateTime? endDate, int? excludeScheduleId = null)
     {
+        if (!string.IsNullOrWhiteSpace(room))
+        {
+            var normalizedRoom = room;
+            if (room.StartsWith("P.", StringComparison.OrdinalIgnoreCase))
+            {
+                normalizedRoom = room.Substring(2);
+            }
+            else if (room.StartsWith("Phòng ", StringComparison.OrdinalIgnoreCase))
+            {
+                normalizedRoom = room.Substring(6);
+            }
+
+            var classroom = await _context.Classrooms.FindAsync(normalizedRoom);
+            if (classroom != null && classroom.IsMaintenance)
+            {
+                throw new ArgumentException($"Phòng học {room} đang trong trạng thái bảo trì và không thể sử dụng.");
+            }
+        }
+
         var query = _context.Schedules
             .Include(s => s.Class)
             .Where(s => s.Class!.Room == room 

@@ -4,6 +4,7 @@ using CourseService.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CourseService.Migrations
 {
     [DbContext(typeof(CourseDbContext))]
-    partial class CourseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260616060942_AddDurationWeeksToCourse")]
+    partial class AddDurationWeeksToCourse
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -111,14 +114,7 @@ namespace CourseService.Migrations
                     b.Property<int?>("TeacherId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TeacherId2")
-                        .HasColumnType("int");
-
                     b.Property<string>("TeacherName")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("TeacherName2")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -2199,71 +2195,6 @@ namespace CourseService.Migrations
                             TeacherId = 5,
                             TeacherName = "Lê Thị Hoa",
                             TotalSessions = 0
-                        });
-                });
-
-            modelBuilder.Entity("CourseService.Models.Classroom", b =>
-                {
-                    b.Property<string>("RoomNumber")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<bool>("IsMaintenance")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.HasKey("RoomNumber");
-
-                    b.ToTable("Classrooms");
-
-                    b.HasData(
-                        new
-                        {
-                            RoomNumber = "301",
-                            IsMaintenance = false
-                        },
-                        new
-                        {
-                            RoomNumber = "302",
-                            IsMaintenance = false
-                        },
-                        new
-                        {
-                            RoomNumber = "303",
-                            IsMaintenance = false
-                        },
-                        new
-                        {
-                            RoomNumber = "304",
-                            IsMaintenance = false
-                        },
-                        new
-                        {
-                            RoomNumber = "305",
-                            IsMaintenance = false
-                        },
-                        new
-                        {
-                            RoomNumber = "306",
-                            IsMaintenance = false
-                        },
-                        new
-                        {
-                            RoomNumber = "307",
-                            IsMaintenance = false
-                        },
-                        new
-                        {
-                            RoomNumber = "308",
-                            IsMaintenance = false
-                        },
-                        new
-                        {
-                            RoomNumber = "309",
-                            IsMaintenance = false
                         });
                 });
 

@@ -16,6 +16,8 @@ public static class ClassMapper
         ClassName = cls.ClassName,
         TeacherId = cls.TeacherId,
         TeacherName = cls.TeacherName,
+        TeacherId2 = cls.TeacherId2,
+        TeacherName2 = cls.TeacherName2,
         Room = cls.Room,
         MaxStudents = cls.MaxStudents,
         CurrentStudents = cls.CurrentStudents,

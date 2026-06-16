@@ -34,6 +34,7 @@ public class UpdateClassStatusCommandHandler : IRequestHandler<UpdateClassStatus
         {
             ClassId = cls.ClassId, CourseId = cls.CourseId, CourseName = cls.Course?.CourseName ?? "",
             ClassName = cls.ClassName, TeacherId = cls.TeacherId, TeacherName = cls.TeacherName,
+            TeacherId2 = cls.TeacherId2, TeacherName2 = cls.TeacherName2,
             Room = cls.Room, MaxStudents = cls.MaxStudents, CurrentStudents = cls.CurrentStudents,
             Status = cls.Status, StartDate = cls.StartDate, EndDate = cls.EndDate, CreatedAt = cls.CreatedAt,
             Schedules = cls.Schedules?.Select(s => new ScheduleDto

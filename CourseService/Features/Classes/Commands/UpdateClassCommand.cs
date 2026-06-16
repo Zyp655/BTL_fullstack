@@ -8,6 +8,8 @@ public record UpdateClassCommand(
     string ClassName,
     int? TeacherId,
     string? TeacherName,
+    int? TeacherId2,
+    string? TeacherName2,
     string? Room,
     int MaxStudents,
     int? TotalSessions,

@@ -4,6 +4,7 @@ using CourseService.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CourseService.Migrations
 {
     [DbContext(typeof(CourseDbContext))]
-    partial class CourseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260616061111_AddClassrooms")]
+    partial class AddClassrooms
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -111,14 +114,7 @@ namespace CourseService.Migrations
                     b.Property<int?>("TeacherId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TeacherId2")
-                        .HasColumnType("int");
-
                     b.Property<string>("TeacherName")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("TeacherName2")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 

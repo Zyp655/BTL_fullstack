@@ -157,6 +157,7 @@ public class StudentResultDto
     public int StudentId { get; set; }
     public string? StudentName { get; set; }
     public List<ExamResultDto> Results { get; set; } = new();
+    public decimal AttendanceScore { get; set; }
     public decimal? AverageScore { get; set; }
 }
 
@@ -261,6 +262,20 @@ public class RejectSupportMessageDto
 public class UpdateSupportMessageDto
 {
     public string Message { get; set; } = string.Empty;
+}
+
+// ===== Teacher Salary Attendance Stats DTOs =====
+public class AttendanceStatsRequest
+{
+    public List<int> ClassIds { get; set; } = new();
+    public int Month { get; set; }
+    public int Year { get; set; }
+}
+
+public class TeacherAttendanceStatsDto
+{
+    public int SessionsTaught { get; set; }
+    public int TotalStudentSessions { get; set; }
 }
 
 

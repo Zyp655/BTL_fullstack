@@ -30,6 +30,7 @@ public class UpdateCourseCommandHandler : IRequestHandler<UpdateCourseCommand, C
         course.Category = request.Category;
         course.Fee = request.Fee;
         course.TotalSessions = request.TotalSessions;
+        course.DurationWeeks = request.DurationWeeks;
         course.IsActive = request.IsActive;
         course.UpdatedAt = DateTime.UtcNow;
 
@@ -50,6 +51,7 @@ public class UpdateCourseCommandHandler : IRequestHandler<UpdateCourseCommand, C
             Category = course.Category,
             Fee = course.Fee,
             TotalSessions = course.TotalSessions,
+            DurationWeeks = course.DurationWeeks,
             IsActive = course.IsActive,
             CreatedAt = course.CreatedAt,
             UpdatedAt = course.UpdatedAt,

@@ -47,14 +47,25 @@ public class GetCourseAnalyticsQueryHandler : IRequestHandler<GetCourseAnalytics
 
         // Teacher workloads
         var teacherWorkloads = classes
-            .Where(c => c.TeacherId.HasValue)
-            .GroupBy(c => new { c.TeacherId, c.TeacherName })
+            .SelectMany(c => {
+                var list = new List<(int Id, string Name, int TotalSessions)>();
+                if (c.TeacherId.HasValue)
+                {
+                    list.Add((c.TeacherId.Value, c.TeacherName ?? "Giáo viên", c.Course?.TotalSessions ?? 0));
+                }
+                if (c.TeacherId2.HasValue)
+                {
+                    list.Add((c.TeacherId2.Value, c.TeacherName2 ?? "Giáo viên phụ", c.Course?.TotalSessions ?? 0));
+                }
+                return list;
+            })
+            .GroupBy(x => new { x.Id, x.Name })
             .Select(g => new TeacherWorkloadDto
             {
-                TeacherId = g.Key.TeacherId!.Value,
-                TeacherName = g.Key.TeacherName ?? "Giáo viên",
+                TeacherId = g.Key.Id,
+                TeacherName = g.Key.Name,
                 ClassCount = g.Count(),
-                TotalSessions = g.Sum(c => c.Course?.TotalSessions ?? 0)
+                TotalSessions = g.Sum(x => x.TotalSessions)
             }).ToList();
 
         return new CourseAnalyticsDto

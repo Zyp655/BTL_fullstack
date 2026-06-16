@@ -12,5 +12,6 @@ public record UpdateCourseCommand(
     string Category,
     decimal Fee,
     int TotalSessions,
+    int DurationWeeks,
     bool IsActive
 ) : IRequest<CourseDto>;

@@ -28,6 +28,7 @@ public class CreateCourseCommandHandler : IRequestHandler<CreateCourseCommand, C
             Category = request.Category,
             Fee = request.Fee,
             TotalSessions = request.TotalSessions,
+            DurationWeeks = request.DurationWeeks,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -50,6 +51,7 @@ public class CreateCourseCommandHandler : IRequestHandler<CreateCourseCommand, C
             Category = course.Category,
             Fee = course.Fee,
             TotalSessions = course.TotalSessions,
+            DurationWeeks = course.DurationWeeks,
             IsActive = course.IsActive,
             CreatedAt = course.CreatedAt,
             UpdatedAt = course.UpdatedAt,

@@ -27,6 +27,7 @@ public class Course
     public decimal Fee { get; set; }
 
     public int TotalSessions { get; set; }
+    public int DurationWeeks { get; set; }
 
     public bool IsActive { get; set; } = true;
 

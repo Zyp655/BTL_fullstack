@@ -24,13 +24,15 @@ public class ClassRepository : IClassRepository
             query = query.Where(c => c.CourseId == courseId.Value);
 
         if (teacherId.HasValue)
-            query = query.Where(c => c.TeacherId == teacherId.Value);
+            query = query.Where(c => c.TeacherId == teacherId.Value || c.TeacherId2 == teacherId.Value);
 
         if (!string.IsNullOrWhiteSpace(status))
             query = query.Where(c => c.Status == status);
 
         if (!string.IsNullOrWhiteSpace(search))
-            query = query.Where(c => c.ClassName.Contains(search) || (c.TeacherName != null && c.TeacherName.Contains(search)));
+            query = query.Where(c => c.ClassName.Contains(search) || 
+                                     (c.TeacherName != null && c.TeacherName.Contains(search)) ||
+                                     (c.TeacherName2 != null && c.TeacherName2.Contains(search)));
 
         return await query
             .OrderByDescending(c => c.CreatedAt)
@@ -47,13 +49,15 @@ public class ClassRepository : IClassRepository
             query = query.Where(c => c.CourseId == courseId.Value);
 
         if (teacherId.HasValue)
-            query = query.Where(c => c.TeacherId == teacherId.Value);
+            query = query.Where(c => c.TeacherId == teacherId.Value || c.TeacherId2 == teacherId.Value);
 
         if (!string.IsNullOrWhiteSpace(status))
             query = query.Where(c => c.Status == status);
 
         if (!string.IsNullOrWhiteSpace(search))
-            query = query.Where(c => c.ClassName.Contains(search) || (c.TeacherName != null && c.TeacherName.Contains(search)));
+            query = query.Where(c => c.ClassName.Contains(search) || 
+                                     (c.TeacherName != null && c.TeacherName.Contains(search)) ||
+                                     (c.TeacherName2 != null && c.TeacherName2.Contains(search)));
 
         return await query.CountAsync();
     }
@@ -71,7 +75,7 @@ public class ClassRepository : IClassRepository
         return await _context.Classes
             .Include(c => c.Course)
             .Include(c => c.Schedules)
-            .Where(c => c.TeacherId == teacherId)
+            .Where(c => c.TeacherId == teacherId || c.TeacherId2 == teacherId)
             .OrderByDescending(c => c.CreatedAt)
             .ToListAsync();
     }

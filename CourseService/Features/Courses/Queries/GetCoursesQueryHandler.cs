@@ -38,6 +38,7 @@ public class GetCoursesQueryHandler : IRequestHandler<GetCoursesQuery, PagedResu
                 Category = c.Category,
                 Fee = c.Fee,
                 TotalSessions = c.TotalSessions,
+                DurationWeeks = c.DurationWeeks,
                 IsActive = c.IsActive,
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt,

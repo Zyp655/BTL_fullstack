@@ -3,6 +3,7 @@ using CourseService.DTOs;
 using CourseService.Repositories;
 using CourseService.Common;
 using CourseService.Common.Exceptions;
+using CourseService.Data;
 
 namespace CourseService.Features.Classes.Commands;
 
@@ -10,13 +11,16 @@ public class UpdateClassCommandHandler : IRequestHandler<UpdateClassCommand, Cla
 {
     private readonly IClassRepository _classRepository;
     private readonly ConflictDetector _conflictDetector;
+    private readonly CourseDbContext _context;
 
     public UpdateClassCommandHandler(
         IClassRepository classRepository,
-        ConflictDetector conflictDetector)
+        ConflictDetector conflictDetector,
+        CourseDbContext context)
     {
         _classRepository = classRepository;
         _conflictDetector = conflictDetector;
+        _context = context;
     }
 
     public async Task<ClassDto> Handle(UpdateClassCommand request, CancellationToken cancellationToken)
@@ -31,15 +35,39 @@ public class UpdateClassCommandHandler : IRequestHandler<UpdateClassCommand, Cla
             await _conflictDetector.CheckClassTeacherConflictAsync(cls.ClassId, request.TeacherId.Value, request.TeacherName ?? "Giáo viên", request.StartDate, request.EndDate);
         }
 
+        // If secondary teacher is updated or dates are updated
+        if (request.TeacherId2.HasValue && (request.TeacherId2 != cls.TeacherId2 || request.StartDate != cls.StartDate || request.EndDate != cls.EndDate))
+        {
+            await _conflictDetector.CheckClassTeacherConflictAsync(cls.ClassId, request.TeacherId2.Value, request.TeacherName2 ?? "Giáo viên phụ", request.StartDate, request.EndDate);
+        }
+
         // If room is updated or dates are updated
         if (!string.IsNullOrWhiteSpace(request.Room) && (request.Room != cls.Room || request.StartDate != cls.StartDate || request.EndDate != cls.EndDate))
         {
+            var normalizedRoom = request.Room;
+            if (request.Room.StartsWith("P.", StringComparison.OrdinalIgnoreCase))
+            {
+                normalizedRoom = request.Room.Substring(2);
+            }
+            else if (request.Room.StartsWith("Phòng ", StringComparison.OrdinalIgnoreCase))
+            {
+                normalizedRoom = request.Room.Substring(6);
+            }
+
+            var classroom = await _context.Classrooms.FindAsync(normalizedRoom);
+            if (classroom != null && classroom.IsMaintenance)
+            {
+                throw new ArgumentException($"Phòng học {request.Room} đang trong trạng thái bảo trì và không thể sử dụng.");
+            }
+
             await _conflictDetector.CheckClassRoomConflictAsync(cls.ClassId, request.Room, request.StartDate, request.EndDate);
         }
 
         cls.ClassName = request.ClassName;
         cls.TeacherId = request.TeacherId;
         cls.TeacherName = request.TeacherName;
+        cls.TeacherId2 = request.TeacherId2;
+        cls.TeacherName2 = request.TeacherName2;
         cls.Room = request.Room;
         cls.MaxStudents = request.MaxStudents;
         if (request.TotalSessions.HasValue)
@@ -56,6 +84,7 @@ public class UpdateClassCommandHandler : IRequestHandler<UpdateClassCommand, Cla
         {
             ClassId = cls.ClassId, CourseId = cls.CourseId, CourseName = cls.Course?.CourseName ?? "",
             ClassName = cls.ClassName, TeacherId = cls.TeacherId, TeacherName = cls.TeacherName,
+            TeacherId2 = cls.TeacherId2, TeacherName2 = cls.TeacherName2,
             Room = cls.Room, MaxStudents = cls.MaxStudents, CurrentStudents = cls.CurrentStudents,
             Status = cls.Status, TotalSessions = cls.TotalSessions, StartDate = cls.StartDate, EndDate = cls.EndDate, CreatedAt = cls.CreatedAt,
             Schedules = cls.Schedules?.Select(s => new ScheduleDto

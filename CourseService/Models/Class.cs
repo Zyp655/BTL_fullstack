@@ -20,6 +20,11 @@ public class Class
     [MaxLength(100)]
     public string? TeacherName { get; set; }
 
+    public int? TeacherId2 { get; set; }
+
+    [MaxLength(100)]
+    public string? TeacherName2 { get; set; }
+
     [MaxLength(50)]
     public string? Room { get; set; }
 

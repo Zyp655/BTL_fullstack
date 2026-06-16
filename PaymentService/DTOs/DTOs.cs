@@ -240,3 +240,59 @@ public class UserStatsDto
     public int StudentCount { get; set; }
 }
 
+// ===== Teacher Salary DTOs =====
+public class TeacherSalaryConfigDto
+{
+    public int UserId { get; set; }
+    public string FullName { get; set; } = string.Empty;
+    public string Username { get; set; } = string.Empty;
+    public decimal BaseSalary { get; set; }
+    public decimal RatePerSession { get; set; }
+    public decimal StudentAllowanceRate { get; set; }
+    public string? Notes { get; set; }
+}
+
+public class UpdateTeacherSalaryConfigDto
+{
+    public decimal BaseSalary { get; set; }
+    public decimal RatePerSession { get; set; }
+    public decimal StudentAllowanceRate { get; set; }
+    public string? Notes { get; set; }
+}
+
+public class SalarySlipDto
+{
+    public int SalarySlipId { get; set; }
+    public int TeacherId { get; set; }
+    public string TeacherName { get; set; } = string.Empty;
+    public int Month { get; set; }
+    public int Year { get; set; }
+    public decimal BaseSalary { get; set; }
+    public decimal RatePerSession { get; set; }
+    public int SessionsTaught { get; set; }
+    public int TotalStudentSessions { get; set; }
+    public decimal StudentAllowanceRate { get; set; }
+    public decimal CalculatedSalary { get; set; }
+    public decimal Bonus { get; set; }
+    public decimal Deductions { get; set; }
+    public decimal TotalAmount { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public string? Notes { get; set; }
+    public DateTime? PaidAt { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
+public class CalculatePayrollDto
+{
+    public int Month { get; set; }
+    public int Year { get; set; }
+}
+
+public class UpdateSalarySlipStatusDto
+{
+    public string Status { get; set; } = string.Empty; // Approved, Paid
+    public decimal Bonus { get; set; }
+    public decimal Deductions { get; set; }
+    public string? Notes { get; set; }
+}
+

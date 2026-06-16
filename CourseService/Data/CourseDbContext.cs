@@ -11,6 +11,7 @@ public class CourseDbContext : DbContext
     public DbSet<Class> Classes => Set<Class>();
     public DbSet<Schedule> Schedules => Set<Schedule>();
     public DbSet<Category> Categories => Set<Category>();
+    public DbSet<Classroom> Classrooms => Set<Classroom>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -54,12 +55,30 @@ public class CourseDbContext : DbContext
             entity.HasIndex(e => e.CategoryCode).IsUnique();
         });
 
+        // Classroom
+        modelBuilder.Entity<Classroom>(entity =>
+        {
+            entity.HasKey(e => e.RoomNumber);
+        });
+
         // Seed data
         SeedData(modelBuilder);
     }
 
     private void SeedData(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Classroom>().HasData(
+            new Classroom { RoomNumber = "301", IsMaintenance = false },
+            new Classroom { RoomNumber = "302", IsMaintenance = false },
+            new Classroom { RoomNumber = "303", IsMaintenance = false },
+            new Classroom { RoomNumber = "304", IsMaintenance = false },
+            new Classroom { RoomNumber = "305", IsMaintenance = false },
+            new Classroom { RoomNumber = "306", IsMaintenance = false },
+            new Classroom { RoomNumber = "307", IsMaintenance = false },
+            new Classroom { RoomNumber = "308", IsMaintenance = false },
+            new Classroom { RoomNumber = "309", IsMaintenance = false }
+        );
+
         modelBuilder.Entity<Category>().HasData(
             new Category { CategoryId = 1, CategoryCode = "NgoaiNgu", CategoryName = "Ngoại ngữ" },
             new Category { CategoryId = 2, CategoryCode = "TinHoc", CategoryName = "Tin học" },
@@ -68,17 +87,17 @@ public class CourseDbContext : DbContext
 
         var courses = new List<Course>
         {
-            new Course { CourseId = 1, CourseName = "Tiếng Anh giao tiếp cơ bản", Description = "Khóa học tiếng Anh giao tiếp dành cho người mới bắt đầu, tập trung vào kỹ năng nghe và nói.", Level = "Beginner", Category = "NgoaiNgu", Fee = 2500000, TotalSessions = 30, IsActive = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Course { CourseId = 2, CourseName = "TOEIC 600+", Description = "Luyện thi TOEIC đạt 600+ điểm, bao gồm cả Listening và Reading.", Level = "Intermediate", Category = "NgoaiNgu", Fee = 3500000, TotalSessions = 40, IsActive = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Course { CourseId = 3, CourseName = "Lập trình Python cơ bản", Description = "Khóa học lập trình Python cho người mới, từ cú pháp cơ bản đến xây dựng ứng dụng đơn giản.", Level = "Beginner", Category = "TinHoc", Fee = 3000000, TotalSessions = 24, IsActive = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Course { CourseId = 4, CourseName = "Kỹ năng thuyết trình", Description = "Rèn luyện kỹ năng thuyết trình chuyên nghiệp, tự tin trước đám đông.", Level = "Intermediate", Category = "KyNang", Fee = 1800000, TotalSessions = 12, IsActive = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Course { CourseId = 5, CourseName = "IELTS 6.5+", Description = "Luyện thi IELTS đạt band 6.5+, bao gồm 4 kỹ năng Listening, Reading, Writing, Speaking.", Level = "Advanced", Category = "NgoaiNgu", Fee = 5000000, TotalSessions = 48, IsActive = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Course { CourseId = 8, CourseName = "Lập trình Web với React & Node.js", Description = "Khóa học Fullstack Web Development sử dụng React cho Frontend và Express/Node.js cho Backend.", Level = "Intermediate", Category = "TinHoc", Fee = 4500000, TotalSessions = 36, IsActive = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Course { CourseId = 9, CourseName = "Kỹ năng quản lý thời gian", Description = "Học cách lập kế hoạch, sắp xếp công việc, và tối ưu hóa năng suất làm việc hàng ngày.", Level = "Beginner", Category = "KyNang", Fee = 1500000, TotalSessions = 10, IsActive = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Course { CourseId = 10, CourseName = "Tiếng Nhật sơ cấp N5", Description = "Khóa học dành cho người bắt đầu làm quen với bảng chữ cái Hiragana, Katakana và giao tiếp cơ bản.", Level = "Beginner", Category = "NgoaiNgu", Fee = 2800000, TotalSessions = 32, IsActive = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Course { CourseId = 11, CourseName = "Lập trình Web với Vue.js", Description = "Khóa học phát triển giao diện Web Single Page Application hiện đại với framework Vue.js 3.", Level = "Intermediate", Category = "TinHoc", Fee = 3800000, TotalSessions = 24, IsActive = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Course { CourseId = 12, CourseName = "Kỹ năng làm việc nhóm (Teamwork)", Description = "Rèn luyện kỹ năng phối hợp, giao tiếp và giải quyết xung đột trong môi trường làm việc nhóm hiệu quả.", Level = "Beginner", Category = "KyNang", Fee = 1200000, TotalSessions = 8, IsActive = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Course { CourseId = 14, CourseName = "Lập trình C# nâng cao", Description = "Khóa học lập trình C# nâng cao, tối ưu hiệu năng và phát triển ứng dụng doanh nghiệp.", Level = "Advanced", Category = "TinHoc", Fee = 4500000, TotalSessions = 36, IsActive = true, CreatedAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc) }
+            new Course { CourseId = 1, CourseName = "Tiếng Anh giao tiếp cơ bản", Description = "Khóa học tiếng Anh giao tiếp dành cho người mới bắt đầu, tập trung vào kỹ năng nghe và nói.", Level = "Beginner", Category = "NgoaiNgu", Fee = 2500000, TotalSessions = 30, DurationWeeks = 10, IsActive = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Course { CourseId = 2, CourseName = "TOEIC 600+", Description = "Luyện thi TOEIC đạt 600+ điểm, bao gồm cả Listening và Reading.", Level = "Intermediate", Category = "NgoaiNgu", Fee = 3500000, TotalSessions = 40, DurationWeeks = 13, IsActive = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Course { CourseId = 3, CourseName = "Lập trình Python cơ bản", Description = "Khóa học lập trình Python cho người mới, từ cú pháp cơ bản đến xây dựng ứng dụng đơn giản.", Level = "Beginner", Category = "TinHoc", Fee = 3000000, TotalSessions = 24, DurationWeeks = 8, IsActive = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Course { CourseId = 4, CourseName = "Kỹ năng thuyết trình", Description = "Rèn luyện kỹ năng thuyết trình chuyên nghiệp, tự tin trước đám đông.", Level = "Intermediate", Category = "KyNang", Fee = 1800000, TotalSessions = 12, DurationWeeks = 4, IsActive = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Course { CourseId = 5, CourseName = "IELTS 6.5+", Description = "Luyện thi IELTS đạt band 6.5+, bao gồm 4 kỹ năng Listening, Reading, Writing, Speaking.", Level = "Advanced", Category = "NgoaiNgu", Fee = 5000000, TotalSessions = 48, DurationWeeks = 16, IsActive = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Course { CourseId = 8, CourseName = "Lập trình Web với React & Node.js", Description = "Khóa học Fullstack Web Development sử dụng React cho Frontend và Express/Node.js cho Backend.", Level = "Intermediate", Category = "TinHoc", Fee = 4500000, TotalSessions = 36, DurationWeeks = 12, IsActive = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Course { CourseId = 9, CourseName = "Kỹ năng quản lý thời gian", Description = "Học cách lập kế hoạch, sắp xếp công việc, và tối ưu hóa năng suất làm việc hàng ngày.", Level = "Beginner", Category = "KyNang", Fee = 1500000, TotalSessions = 10, DurationWeeks = 5, IsActive = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Course { CourseId = 10, CourseName = "Tiếng Nhật sơ cấp N5", Description = "Khóa học dành cho người bắt đầu làm quen với bảng chữ cái Hiragana, Katakana và giao tiếp cơ bản.", Level = "Beginner", Category = "NgoaiNgu", Fee = 2800000, TotalSessions = 32, DurationWeeks = 11, IsActive = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Course { CourseId = 11, CourseName = "Lập trình Web với Vue.js", Description = "Khóa học phát triển giao diện Web Single Page Application hiện đại với framework Vue.js 3.", Level = "Intermediate", Category = "TinHoc", Fee = 3800000, TotalSessions = 24, DurationWeeks = 8, IsActive = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Course { CourseId = 12, CourseName = "Kỹ năng làm việc nhóm (Teamwork)", Description = "Rèn luyện kỹ năng phối hợp, giao tiếp và giải quyết xung đột trong môi trường làm việc nhóm hiệu quả.", Level = "Beginner", Category = "KyNang", Fee = 1200000, TotalSessions = 8, DurationWeeks = 3, IsActive = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Course { CourseId = 14, CourseName = "Lập trình C# nâng cao", Description = "Khóa học lập trình C# nâng cao, tối ưu hiệu năng và phát triển ứng dụng doanh nghiệp.", Level = "Advanced", Category = "TinHoc", Fee = 4500000, TotalSessions = 36, DurationWeeks = 12, IsActive = true, CreatedAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc) }
         };
 
         var classes = new List<Class>
@@ -139,6 +158,7 @@ public class CourseDbContext : DbContext
             var lvl = levelOptions[i % levelOptions.Length];
             var teacher = teachers[i % teachers.Length];
 
+            int totalSessions = 10 + (i % 20);
             courses.Add(new Course
             {
                 CourseId = cid,
@@ -147,7 +167,8 @@ public class CourseDbContext : DbContext
                 Level = lvl,
                 Category = cat,
                 Fee = 1500000 + (i * 20000),
-                TotalSessions = 10 + (i % 20),
+                TotalSessions = totalSessions,
+                DurationWeeks = (int)Math.Ceiling(totalSessions / 2.0),
                 IsActive = true,
                 CreatedAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc),
                 UpdatedAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc)
@@ -174,6 +195,7 @@ public class CourseDbContext : DbContext
         for (int i = 1; i <= 20; i++)
         {
             int cid = 200 + i;
+            int totalSessions = 15 + i;
             courses.Add(new Course
             {
                 CourseId = cid,
@@ -182,7 +204,8 @@ public class CourseDbContext : DbContext
                 Level = "Advanced",
                 Category = "TinHoc",
                 Fee = 3000000 + (i * 50000),
-                TotalSessions = 15 + i,
+                TotalSessions = totalSessions,
+                DurationWeeks = (int)Math.Ceiling(totalSessions / 2.0),
                 IsActive = true,
                 CreatedAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc),
                 UpdatedAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc)

@@ -3,6 +3,7 @@ using CourseService.DTOs;
 using CourseService.Models;
 using CourseService.Repositories;
 using CourseService.Common.Exceptions;
+using CourseService.Data;
 using MassTransit;
 
 namespace CourseService.Features.Classes.Commands;
@@ -13,14 +14,18 @@ public class CreateClassCommandHandler : IRequestHandler<CreateClassCommand, Cla
     private readonly ICourseRepository _courseRepository;
     private readonly IPublishEndpoint _publishEndpoint;
 
+    private readonly CourseDbContext _context;
+
     public CreateClassCommandHandler(
         IClassRepository classRepository,
         ICourseRepository courseRepository,
-        IPublishEndpoint publishEndpoint)
+        IPublishEndpoint publishEndpoint,
+        CourseDbContext context)
     {
         _classRepository = classRepository;
         _courseRepository = courseRepository;
         _publishEndpoint = publishEndpoint;
+        _context = context;
     }
 
     public async Task<ClassDto> Handle(CreateClassCommand request, CancellationToken cancellationToken)
@@ -29,12 +34,33 @@ public class CreateClassCommandHandler : IRequestHandler<CreateClassCommand, Cla
         if (course == null)
             throw new NotFoundException("Khóa học", request.CourseId);
 
+        if (!string.IsNullOrWhiteSpace(request.Room))
+        {
+            var normalizedRoom = request.Room;
+            if (request.Room.StartsWith("P.", StringComparison.OrdinalIgnoreCase))
+            {
+                normalizedRoom = request.Room.Substring(2);
+            }
+            else if (request.Room.StartsWith("Phòng ", StringComparison.OrdinalIgnoreCase))
+            {
+                normalizedRoom = request.Room.Substring(6);
+            }
+
+            var classroom = await _context.Classrooms.FindAsync(normalizedRoom);
+            if (classroom != null && classroom.IsMaintenance)
+            {
+                throw new ArgumentException($"Phòng học {request.Room} đang trong trạng thái bảo trì và không thể sử dụng.");
+            }
+        }
+
         var cls = new Class
         {
             CourseId = request.CourseId,
             ClassName = request.ClassName,
             TeacherId = request.TeacherId,
             TeacherName = request.TeacherName,
+            TeacherId2 = request.TeacherId2,
+            TeacherName2 = request.TeacherName2,
             Room = request.Room,
             MaxStudents = request.MaxStudents,
             CurrentStudents = 0,
@@ -57,6 +83,8 @@ public class CreateClassCommandHandler : IRequestHandler<CreateClassCommand, Cla
             CourseName = course.CourseName,
             TeacherId = cls.TeacherId,
             TeacherName = cls.TeacherName,
+            TeacherId2 = cls.TeacherId2,
+            TeacherName2 = cls.TeacherName2,
             StartDate = cls.StartDate
         }, cancellationToken);
 
@@ -72,6 +100,8 @@ public class CreateClassCommandHandler : IRequestHandler<CreateClassCommand, Cla
         ClassName = cls.ClassName,
         TeacherId = cls.TeacherId,
         TeacherName = cls.TeacherName,
+        TeacherId2 = cls.TeacherId2,
+        TeacherName2 = cls.TeacherName2,
         Room = cls.Room,
         MaxStudents = cls.MaxStudents,
         CurrentStudents = cls.CurrentStudents,

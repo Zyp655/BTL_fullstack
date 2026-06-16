@@ -10,6 +10,7 @@ public class CreateCourseDto
     public string Category { get; set; } = "NgoaiNgu";
     public decimal Fee { get; set; }
     public int TotalSessions { get; set; }
+    public int DurationWeeks { get; set; }
 }
 
 public class UpdateCourseDto
@@ -21,6 +22,7 @@ public class UpdateCourseDto
     public string Category { get; set; } = "NgoaiNgu";
     public decimal Fee { get; set; }
     public int TotalSessions { get; set; }
+    public int DurationWeeks { get; set; }
     public bool IsActive { get; set; } = true;
 }
 
@@ -34,6 +36,7 @@ public class CourseDto
     public string Category { get; set; } = string.Empty;
     public decimal Fee { get; set; }
     public int TotalSessions { get; set; }
+    public int DurationWeeks { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
@@ -47,6 +50,8 @@ public class CreateClassDto
     public string ClassName { get; set; } = string.Empty;
     public int? TeacherId { get; set; }
     public string? TeacherName { get; set; }
+    public int? TeacherId2 { get; set; }
+    public string? TeacherName2 { get; set; }
     public string? Room { get; set; }
     public int MaxStudents { get; set; } = 30;
     public int? TotalSessions { get; set; }
@@ -59,6 +64,8 @@ public class UpdateClassDto
     public string ClassName { get; set; } = string.Empty;
     public int? TeacherId { get; set; }
     public string? TeacherName { get; set; }
+    public int? TeacherId2 { get; set; }
+    public string? TeacherName2 { get; set; }
     public string? Room { get; set; }
     public int MaxStudents { get; set; } = 30;
     public int? TotalSessions { get; set; }
@@ -74,6 +81,8 @@ public class ClassDto
     public string ClassName { get; set; } = string.Empty;
     public int? TeacherId { get; set; }
     public string? TeacherName { get; set; }
+    public int? TeacherId2 { get; set; }
+    public string? TeacherName2 { get; set; }
     public string? Room { get; set; }
     public int MaxStudents { get; set; }
     public int CurrentStudents { get; set; }
@@ -172,4 +181,20 @@ public class TeacherWorkloadDto
     public string TeacherName { get; set; } = string.Empty;
     public int ClassCount { get; set; }
     public int TotalSessions { get; set; }
+}
+
+// ===== Classroom DTOs =====
+public class ClassroomDto
+{
+    public string RoomNumber { get; set; } = string.Empty;
+    public bool IsMaintenance { get; set; }
+    public string? Notes { get; set; }
+    public string Status { get; set; } = "Vacant"; // Vacant, Occupied, Maintenance
+    public string? CurrentClassName { get; set; }
+}
+
+public class UpdateClassroomMaintenanceDto
+{
+    public bool IsMaintenance { get; set; }
+    public string? Notes { get; set; }
 }
