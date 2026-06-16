@@ -258,5 +258,11 @@ public class RejectSupportMessageDto
     public string? AdminResponse { get; set; }
 }
 
+public class UpdateSupportMessageDto
+{
+    public string Message { get; set; } = string.Empty;
+}
+
+
 
 

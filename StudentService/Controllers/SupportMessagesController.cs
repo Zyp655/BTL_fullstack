@@ -186,6 +186,58 @@ public class SupportMessagesController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Get support messages for a specific class
+    /// </summary>
+    [Authorize(Roles = "Admin,HocVien,GiaoVien")]
+    [HttpGet("class/{classId}")]
+    public async Task<ActionResult<List<SupportMessageDto>>> GetClassMessages(int classId)
+    {
+        var list = await _context.SupportMessages
+            .Include(m => m.Student)
+            .Where(m => m.FromClassId == classId)
+            .OrderByDescending(m => m.CreatedAt)
+            .ToListAsync();
+
+        var result = list.Select(m => MapToDto(m, m.Student.FullName)).ToList();
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Update an existing support message (only if status is Pending)
+    /// </summary>
+    [Authorize(Roles = "Admin,HocVien,GiaoVien")]
+    [HttpPut("{id}")]
+    public async Task<ActionResult<SupportMessageDto>> UpdateMessage(int id, [FromBody] UpdateSupportMessageDto dto)
+    {
+        var msg = await _context.SupportMessages
+            .Include(m => m.Student)
+            .FirstOrDefaultAsync(m => m.Id == id);
+
+        if (msg == null)
+            return NotFound(new { message = "Không tìm thấy yêu cầu này" });
+
+        if (msg.Status != "Pending")
+            return BadRequest(new { message = "Không thể chỉnh sửa yêu cầu đã được xử lý" });
+
+        // For security, students can only edit their own student profile requests
+        if (User.IsInRole("HocVien"))
+        {
+            var userId = int.Parse(User.FindFirst("userId")?.Value ?? "0");
+            var student = await _context.Students.FirstOrDefaultAsync(s => s.UserId == userId);
+            if (student == null || student.StudentId != msg.StudentId)
+                return Forbid();
+        }
+
+        msg.Message = dto.Message;
+        _context.SupportMessages.Update(msg);
+        await _context.SaveChangesAsync();
+
+        var result = MapToDto(msg, msg.Student.FullName);
+        await _hubContext.Clients.Group("Admins").SendAsync("SupportMessageUpdated", result);
+        return Ok(result);
+    }
+
     private static SupportMessageDto MapToDto(SupportMessage m, string studentName)
     {
         return new SupportMessageDto
