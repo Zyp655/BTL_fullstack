@@ -74,6 +74,11 @@ public class EnrollmentRepository : IEnrollmentRepository
         _context.Enrollments.Update(enrollment);
     }
 
+    public void DeleteEnrollment(Enrollment enrollment)
+    {
+        _context.Enrollments.Remove(enrollment);
+    }
+
     public async Task<IEnumerable<Student>> GetStudentsByClassAsync(int classId)
     {
         return await _context.Enrollments

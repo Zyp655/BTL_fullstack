@@ -128,6 +128,21 @@ public class EnrollmentsController : ControllerBase
     }
 
     /// <summary>
+    /// Xóa đăng ký học viên khỏi lớp
+    /// </summary>
+    [Authorize(Roles = "Admin,GiaoVien")]
+    [HttpDelete("{id}")]
+    public async Task<ActionResult<bool>> DeleteEnrollment(int id)
+    {
+        var success = await _mediator.Send(new DeleteEnrollmentCommand(id));
+        if (!success)
+            return NotFound(new { message = "Không tìm thấy đăng ký" });
+
+        return Ok(success);
+    }
+
+
+    /// <summary>
     /// Giải quyết lớp học bị hủy (bảo lưu, chuyển lớp, hoàn tiền)
     /// </summary>
     [Authorize(Roles = "Admin")]

@@ -10,6 +10,7 @@ public interface IEnrollmentRepository
     Task<bool> HasActiveEnrollmentAsync(int studentId, int classId);
     Task AddEnrollmentAsync(Enrollment enrollment);
     void UpdateEnrollment(Enrollment enrollment);
+    void DeleteEnrollment(Enrollment enrollment);
     Task<IEnumerable<Student>> GetStudentsByClassAsync(int classId);
     Task<bool> SaveChangesAsync();
 }
