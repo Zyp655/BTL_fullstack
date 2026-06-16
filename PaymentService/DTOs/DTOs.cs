@@ -296,3 +296,31 @@ public class UpdateSalarySlipStatusDto
     public string? Notes { get; set; }
 }
 
+public class TeacherDashboardSummaryDto
+{
+    public int ClassCount { get; set; }
+    public int TotalStudentsTaught { get; set; }
+    public int SessionsTaughtThisMonth { get; set; }
+    public decimal EstimatedSalaryThisMonth { get; set; }
+    public List<ClassInfoDto> Classes { get; set; } = new();
+    public List<SalarySlipDto> RecentSlips { get; set; } = new();
+}
+
+public class ClassInfoDto
+{
+    public int ClassId { get; set; }
+    public int CourseId { get; set; }
+    public string ClassName { get; set; } = string.Empty;
+    public string CourseName { get; set; } = string.Empty;
+    public int MaxStudents { get; set; }
+    public int CurrentStudents { get; set; }
+    public string Status { get; set; } = string.Empty;
+}
+
+public class CourseInfoDto
+{
+    public int CourseId { get; set; }
+    public string CourseName { get; set; } = string.Empty;
+    public decimal Fee { get; set; }
+}
+

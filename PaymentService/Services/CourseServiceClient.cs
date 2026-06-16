@@ -62,22 +62,3 @@ public class CourseServiceClient : ICourseServiceClient
         }
     }
 }
-
-// DTOs for inter-service communication
-public class ClassInfoDto
-{
-    public int ClassId { get; set; }
-    public int CourseId { get; set; }
-    public string ClassName { get; set; } = string.Empty;
-    public string CourseName { get; set; } = string.Empty;
-    public int MaxStudents { get; set; }
-    public int CurrentStudents { get; set; }
-    public string Status { get; set; } = string.Empty;
-}
-
-public class CourseInfoDto
-{
-    public int CourseId { get; set; }
-    public string CourseName { get; set; } = string.Empty;
-    public decimal Fee { get; set; }
-}

@@ -315,4 +315,105 @@ public class TeacherSalaryController : ControllerBase
             CreatedAt = slip.CreatedAt
         });
     }
+
+    /// <summary>
+    /// Lấy thông tin dashboard tổng quan dành cho giảng viên (GiaoVien)
+    /// </summary>
+    [Authorize(Roles = "GiaoVien")]
+    [HttpGet("dashboard-summary")]
+    public async Task<ActionResult<TeacherDashboardSummaryDto>> GetTeacherDashboardSummary()
+    {
+        var userIdStr = User.FindFirst("userId")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int teacherId))
+        {
+            return Unauthorized(new { message = "Không xác thực được tài khoản giảng viên" });
+        }
+
+        // 1. Lấy danh sách lớp học của giảng viên
+        var classes = await _courseServiceClient.GetClassesByTeacher(teacherId) ?? new List<ClassInfoDto>();
+        int classCount = classes.Count;
+
+        // 2. Lấy danh sách học viên duy nhất (độc lập) trong các lớp này
+        var uniqueStudentIds = new HashSet<int>();
+        foreach (var cls in classes)
+        {
+            var students = await _studentServiceClient.GetStudentsByClassId(cls.ClassId);
+            if (students != null)
+            {
+                foreach (var s in students)
+                {
+                    uniqueStudentIds.Add(s.UserId);
+                }
+            }
+        }
+        int totalStudentsTaught = uniqueStudentIds.Count;
+
+        // 3. Lấy cấu hình lương hiện tại của giảng viên
+        var config = await _context.TeacherSalaryConfigs.FindAsync(teacherId);
+        decimal baseSalary = config?.BaseSalary ?? 0;
+        decimal ratePerSession = config?.RatePerSession ?? 300000;
+        decimal studentAllowanceRate = config?.StudentAllowanceRate ?? 0;
+
+        // 4. Lấy thống kê buổi dạy & lượt học viên tháng hiện tại
+        var localTime = DateTime.UtcNow.AddHours(7);
+        int currentMonth = localTime.Month;
+        int currentYear = localTime.Year;
+
+        int sessionsTaughtThisMonth = 0;
+        int totalStudentSessions = 0;
+
+        if (classes.Any())
+        {
+            var classIds = classes.Select(c => c.ClassId).ToList();
+            var stats = await _studentServiceClient.GetAttendanceStats(classIds, currentMonth, currentYear);
+            if (stats != null)
+            {
+                sessionsTaughtThisMonth = stats.SessionsTaught;
+                totalStudentSessions = stats.TotalStudentSessions;
+            }
+        }
+
+        // 5. Tính toán lương tạm tính tháng hiện tại
+        decimal estimatedSalaryThisMonth = baseSalary + (sessionsTaughtThisMonth * ratePerSession) + (totalStudentSessions * studentAllowanceRate);
+
+        // 6. Lấy danh sách phiếu lương gần nhất
+        var slips = await _context.SalarySlips
+            .Where(s => s.TeacherId == teacherId)
+            .OrderByDescending(s => s.Year)
+            .ThenByDescending(s => s.Month)
+            .Take(5)
+            .ToListAsync();
+
+        var recentSlipsDto = slips.Select(s => new SalarySlipDto
+        {
+            SalarySlipId = s.SalarySlipId,
+            TeacherId = s.TeacherId,
+            TeacherName = s.Teacher?.FullName ?? $"ID {s.TeacherId}",
+            Month = s.Month,
+            Year = s.Year,
+            BaseSalary = s.BaseSalary,
+            RatePerSession = s.RatePerSession,
+            SessionsTaught = s.SessionsTaught,
+            TotalStudentSessions = s.TotalStudentSessions,
+            StudentAllowanceRate = s.StudentAllowanceRate,
+            CalculatedSalary = s.CalculatedSalary,
+            Bonus = s.Bonus,
+            Deductions = s.Deductions,
+            TotalAmount = s.TotalAmount,
+            Status = s.Status,
+            Notes = s.Notes,
+            PaidAt = s.PaidAt,
+            CreatedAt = s.CreatedAt
+        }).ToList();
+
+        return Ok(new TeacherDashboardSummaryDto
+        {
+            ClassCount = classCount,
+            TotalStudentsTaught = totalStudentsTaught,
+            SessionsTaughtThisMonth = sessionsTaughtThisMonth,
+            EstimatedSalaryThisMonth = estimatedSalaryThisMonth,
+            Classes = classes,
+            RecentSlips = recentSlipsDto
+        });
+    }
 }
