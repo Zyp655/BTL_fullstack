@@ -332,5 +332,6 @@ public class TeacherSlipFeedbackDto
 {
     public bool Accepted { get; set; }
     public string? Feedback { get; set; }
+    public string? BankAccount { get; set; }
 }
 

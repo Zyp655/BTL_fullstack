@@ -45,6 +45,9 @@ public class SalarySlip
 
     public DateTime? PaidAt { get; set; }
 
+    [MaxLength(500)]
+    public string? BankAccount { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     [ForeignKey("TeacherId")]

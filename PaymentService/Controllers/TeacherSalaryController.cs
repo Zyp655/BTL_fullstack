@@ -9,6 +9,7 @@ using Asp.Versioning;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace PaymentService.Controllers;
@@ -133,7 +134,7 @@ public class TeacherSalaryController : ControllerBase
             SalarySlipId = s.SalarySlipId,
             TeacherId = s.TeacherId,
             TeacherName = s.Teacher?.FullName ?? $"ID {s.TeacherId}",
-            BankAccount = s.Teacher?.BankAccount,
+            BankAccount = s.BankAccount ?? GetDefaultBankAccountName(s.Teacher?.BankAccount),
             Month = s.Month,
             Year = s.Year,
             BaseSalary = s.BaseSalary,
@@ -211,6 +212,7 @@ public class TeacherSalaryController : ControllerBase
                     slip.StudentAllowanceRate = config.StudentAllowanceRate;
                     slip.CalculatedSalary = calculatedSalary;
                     slip.TotalAmount = calculatedSalary + slip.Bonus - slip.Deductions;
+                    slip.Status = "Pending";
                 }
             }
             else
@@ -241,7 +243,7 @@ public class TeacherSalaryController : ControllerBase
                 SalarySlipId = slip.SalarySlipId,
                 TeacherId = slip.TeacherId,
                 TeacherName = teacher.FullName,
-                BankAccount = teacher.BankAccount,
+                BankAccount = slip.BankAccount ?? GetDefaultBankAccountName(teacher.BankAccount),
                 Month = slip.Month,
                 Year = slip.Year,
                 BaseSalary = slip.BaseSalary,
@@ -286,10 +288,6 @@ public class TeacherSalaryController : ControllerBase
             slip.Status = "Paid";
             slip.PaidAt = DateTime.UtcNow;
         }
-        else if (dto.Status == "Approved" && slip.Status != "Paid")
-        {
-            slip.Status = "Approved";
-        }
         else
         {
             if (slip.Status != "Paid")
@@ -307,7 +305,7 @@ public class TeacherSalaryController : ControllerBase
             SalarySlipId = slip.SalarySlipId,
             TeacherId = slip.TeacherId,
             TeacherName = slip.Teacher?.FullName ?? $"ID {slip.TeacherId}",
-            BankAccount = slip.Teacher?.BankAccount,
+            BankAccount = slip.BankAccount ?? GetDefaultBankAccountName(slip.Teacher?.BankAccount),
             Month = slip.Month,
             Year = slip.Year,
             BaseSalary = slip.BaseSalary,
@@ -353,6 +351,10 @@ public class TeacherSalaryController : ControllerBase
         {
             slip.Status = "Approved";
             slip.Notes = string.IsNullOrEmpty(dto.Feedback) ? "Giảng viên đã chấp nhận" : $"Giảng viên đã chấp nhận: {dto.Feedback}";
+            if (!string.IsNullOrEmpty(dto.BankAccount))
+            {
+                slip.BankAccount = dto.BankAccount;
+            }
         }
         else
         {
@@ -367,7 +369,7 @@ public class TeacherSalaryController : ControllerBase
             SalarySlipId = slip.SalarySlipId,
             TeacherId = slip.TeacherId,
             TeacherName = slip.Teacher?.FullName ?? $"ID {slip.TeacherId}",
-            BankAccount = slip.Teacher?.BankAccount,
+            BankAccount = slip.BankAccount ?? GetDefaultBankAccountName(slip.Teacher?.BankAccount),
             Month = slip.Month,
             Year = slip.Year,
             BaseSalary = slip.BaseSalary,
@@ -448,6 +450,7 @@ public class TeacherSalaryController : ControllerBase
 
         // 6. Lấy danh sách phiếu lương gần nhất
         var slips = await _context.SalarySlips
+            .Include(s => s.Teacher)
             .Where(s => s.TeacherId == teacherId)
             .OrderByDescending(s => s.Year)
             .ThenByDescending(s => s.Month)
@@ -459,7 +462,7 @@ public class TeacherSalaryController : ControllerBase
             SalarySlipId = s.SalarySlipId,
             TeacherId = s.TeacherId,
             TeacherName = s.Teacher?.FullName ?? $"ID {s.TeacherId}",
-            BankAccount = s.Teacher?.BankAccount,
+            BankAccount = s.BankAccount ?? GetDefaultBankAccountName(s.Teacher?.BankAccount),
             Month = s.Month,
             Year = s.Year,
             BaseSalary = s.BaseSalary,
@@ -486,5 +489,37 @@ public class TeacherSalaryController : ControllerBase
             Classes = classes,
             RecentSlips = recentSlipsDto
         });
+    }
+
+    private static string? GetDefaultBankAccountName(string? bankAccountsJson)
+    {
+        if (string.IsNullOrEmpty(bankAccountsJson)) return null;
+        if (!bankAccountsJson.TrimStart().StartsWith("[")) return bankAccountsJson; // Legacy format
+        try
+        {
+            var accounts = System.Text.Json.JsonSerializer.Deserialize<List<BankAccountItem>>(bankAccountsJson);
+            if (accounts != null && accounts.Count > 0)
+            {
+                var defaultAcc = accounts.FirstOrDefault(a => a.IsDefault) ?? accounts[0];
+                return $"{defaultAcc.BankName} - {defaultAcc.AccountNumber} ({defaultAcc.AccountHolder})";
+            }
+        }
+        catch
+        {
+            // ignored
+        }
+        return bankAccountsJson;
+    }
+
+    private class BankAccountItem
+    {
+        [JsonPropertyName("bankName")]
+        public string BankName { get; set; } = string.Empty;
+        [JsonPropertyName("accountNumber")]
+        public string AccountNumber { get; set; } = string.Empty;
+        [JsonPropertyName("accountHolder")]
+        public string AccountHolder { get; set; } = string.Empty;
+        [JsonPropertyName("isDefault")]
+        public bool IsDefault { get; set; }
     }
 }
