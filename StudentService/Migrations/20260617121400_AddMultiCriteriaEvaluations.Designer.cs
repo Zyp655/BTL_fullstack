@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StudentService.Data;
 
@@ -11,9 +12,11 @@ using StudentService.Data;
 namespace StudentService.Migrations
 {
     [DbContext(typeof(StudentDbContext))]
-    partial class StudentDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260617121400_AddMultiCriteriaEvaluations")]
+    partial class AddMultiCriteriaEvaluations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -125,294 +128,6 @@ namespace StudentService.Migrations
                             Note = "Xin phép nghỉ",
                             SessionDate = new DateTime(2026, 4, 4, 0, 0, 0, 0, DateTimeKind.Utc),
                             Status = "CoPhep"
-                        },
-                        new
-                        {
-                            AttendanceId = 8,
-                            CreatedAt = new DateTime(2026, 6, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 8,
-                            MarkedByTeacherId = 2,
-                            SessionDate = new DateTime(2026, 6, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 9,
-                            CreatedAt = new DateTime(2026, 6, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 9,
-                            MarkedByTeacherId = 2,
-                            SessionDate = new DateTime(2026, 6, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 10,
-                            CreatedAt = new DateTime(2026, 6, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 10,
-                            MarkedByTeacherId = 2,
-                            SessionDate = new DateTime(2026, 6, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "DiTre"
-                        },
-                        new
-                        {
-                            AttendanceId = 11,
-                            CreatedAt = new DateTime(2026, 6, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 11,
-                            MarkedByTeacherId = 2,
-                            SessionDate = new DateTime(2026, 6, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 12,
-                            CreatedAt = new DateTime(2026, 6, 10, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 8,
-                            MarkedByTeacherId = 2,
-                            SessionDate = new DateTime(2026, 6, 10, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 13,
-                            CreatedAt = new DateTime(2026, 6, 10, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 9,
-                            MarkedByTeacherId = 2,
-                            SessionDate = new DateTime(2026, 6, 10, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Vang"
-                        },
-                        new
-                        {
-                            AttendanceId = 14,
-                            CreatedAt = new DateTime(2026, 6, 10, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 10,
-                            MarkedByTeacherId = 2,
-                            SessionDate = new DateTime(2026, 6, 10, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 15,
-                            CreatedAt = new DateTime(2026, 6, 10, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 11,
-                            MarkedByTeacherId = 2,
-                            SessionDate = new DateTime(2026, 6, 10, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 16,
-                            CreatedAt = new DateTime(2026, 6, 17, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 8,
-                            MarkedByTeacherId = 2,
-                            SessionDate = new DateTime(2026, 6, 17, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 17,
-                            CreatedAt = new DateTime(2026, 6, 17, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 9,
-                            MarkedByTeacherId = 2,
-                            SessionDate = new DateTime(2026, 6, 17, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 18,
-                            CreatedAt = new DateTime(2026, 6, 17, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 10,
-                            MarkedByTeacherId = 2,
-                            SessionDate = new DateTime(2026, 6, 17, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 19,
-                            CreatedAt = new DateTime(2026, 6, 17, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 11,
-                            MarkedByTeacherId = 2,
-                            SessionDate = new DateTime(2026, 6, 17, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 20,
-                            CreatedAt = new DateTime(2026, 6, 24, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 8,
-                            MarkedByTeacherId = 2,
-                            SessionDate = new DateTime(2026, 6, 24, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 21,
-                            CreatedAt = new DateTime(2026, 6, 24, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 9,
-                            MarkedByTeacherId = 2,
-                            SessionDate = new DateTime(2026, 6, 24, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 22,
-                            CreatedAt = new DateTime(2026, 6, 24, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 10,
-                            MarkedByTeacherId = 2,
-                            SessionDate = new DateTime(2026, 6, 24, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "DiTre"
-                        },
-                        new
-                        {
-                            AttendanceId = 23,
-                            CreatedAt = new DateTime(2026, 6, 24, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 11,
-                            MarkedByTeacherId = 2,
-                            SessionDate = new DateTime(2026, 6, 24, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Vang"
-                        },
-                        new
-                        {
-                            AttendanceId = 24,
-                            CreatedAt = new DateTime(2026, 7, 20, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 38,
-                            MarkedByTeacherId = 5,
-                            SessionDate = new DateTime(2026, 7, 20, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 25,
-                            CreatedAt = new DateTime(2026, 7, 20, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 39,
-                            MarkedByTeacherId = 5,
-                            SessionDate = new DateTime(2026, 7, 20, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 26,
-                            CreatedAt = new DateTime(2026, 7, 27, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 38,
-                            MarkedByTeacherId = 5,
-                            SessionDate = new DateTime(2026, 7, 27, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 27,
-                            CreatedAt = new DateTime(2026, 7, 27, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 39,
-                            MarkedByTeacherId = 5,
-                            SessionDate = new DateTime(2026, 7, 27, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 28,
-                            CreatedAt = new DateTime(2026, 6, 4, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 12,
-                            MarkedByTeacherId = 4,
-                            SessionDate = new DateTime(2026, 6, 4, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 29,
-                            CreatedAt = new DateTime(2026, 6, 4, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 13,
-                            MarkedByTeacherId = 4,
-                            SessionDate = new DateTime(2026, 6, 4, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 30,
-                            CreatedAt = new DateTime(2026, 6, 4, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 14,
-                            MarkedByTeacherId = 4,
-                            SessionDate = new DateTime(2026, 6, 4, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 31,
-                            CreatedAt = new DateTime(2026, 6, 11, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 12,
-                            MarkedByTeacherId = 4,
-                            SessionDate = new DateTime(2026, 6, 11, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 32,
-                            CreatedAt = new DateTime(2026, 6, 11, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 13,
-                            MarkedByTeacherId = 4,
-                            SessionDate = new DateTime(2026, 6, 11, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "DiTre"
-                        },
-                        new
-                        {
-                            AttendanceId = 33,
-                            CreatedAt = new DateTime(2026, 6, 11, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 14,
-                            MarkedByTeacherId = 4,
-                            SessionDate = new DateTime(2026, 6, 11, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 34,
-                            CreatedAt = new DateTime(2026, 6, 18, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 12,
-                            MarkedByTeacherId = 4,
-                            SessionDate = new DateTime(2026, 6, 18, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 35,
-                            CreatedAt = new DateTime(2026, 6, 18, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 13,
-                            MarkedByTeacherId = 4,
-                            SessionDate = new DateTime(2026, 6, 18, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Vang"
-                        },
-                        new
-                        {
-                            AttendanceId = 36,
-                            CreatedAt = new DateTime(2026, 6, 18, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 14,
-                            MarkedByTeacherId = 4,
-                            SessionDate = new DateTime(2026, 6, 18, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 37,
-                            CreatedAt = new DateTime(2026, 6, 25, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 12,
-                            MarkedByTeacherId = 4,
-                            SessionDate = new DateTime(2026, 6, 25, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 38,
-                            CreatedAt = new DateTime(2026, 6, 25, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 13,
-                            MarkedByTeacherId = 4,
-                            SessionDate = new DateTime(2026, 6, 25, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
-                        },
-                        new
-                        {
-                            AttendanceId = 39,
-                            CreatedAt = new DateTime(2026, 6, 25, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnrollmentId = 14,
-                            MarkedByTeacherId = 4,
-                            SessionDate = new DateTime(2026, 6, 25, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "CoMat"
                         });
                 });
 
@@ -3124,64 +2839,6 @@ namespace StudentService.Migrations
                         });
                 });
 
-            modelBuilder.Entity("StudentService.Models.EvaluationCriterion", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("EvaluationCriteria");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Description = "Truyền tải kiến thức, dễ hiểu, nhiệt huyết",
-                            IsActive = true,
-                            Name = "Chất lượng giảng dạy"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Description = "Tận tình hỗ trợ học viên, giải đáp thắc mắc",
-                            IsActive = true,
-                            Name = "Thái độ & Hỗ trợ"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Description = "Đầy đủ tài liệu học tập, bài tập, slide",
-                            IsActive = true,
-                            Name = "Tài liệu & Giáo trình"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Description = "Vào lớp đúng giờ, chuyên nghiệp, chuẩn mực",
-                            IsActive = true,
-                            Name = "Tác phong & Đúng giờ"
-                        });
-                });
-
             modelBuilder.Entity("StudentService.Models.ExamResult", b =>
                 {
                     b.Property<int>("ResultId")
@@ -4583,29 +4240,6 @@ namespace StudentService.Migrations
                     b.ToTable("SupportMessages");
                 });
 
-            modelBuilder.Entity("StudentService.Models.SystemSetting", b =>
-                {
-                    b.Property<string>("Key")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.HasKey("Key");
-
-                    b.ToTable("SystemSettings");
-
-                    b.HasData(
-                        new
-                        {
-                            Key = "IsEvaluationEnabled",
-                            Value = "true"
-                        });
-                });
-
             modelBuilder.Entity("StudentService.Models.TeacherEvaluation", b =>
                 {
                     b.Property<int>("Id")
@@ -4626,9 +4260,6 @@ namespace StudentService.Migrations
 
                     b.Property<int>("CurriculumRating")
                         .HasColumnType("int");
-
-                    b.Property<string>("DetailedRatingsJson")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("PunctualityRating")
                         .HasColumnType("int");

@@ -433,6 +433,36 @@ public class PaymentsController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
+
+    /// <summary>
+    /// Hủy hóa đơn học phí khi chưa thanh toán (Học viên không học nữa)
+    /// </summary>
+    [Authorize(Roles = "Admin,HocVien")]
+    [HttpDelete("{id}")]
+    public async Task<ActionResult<bool>> DeletePayment(int id)
+    {
+        var payment = await _paymentRepository.GetPaymentByIdAsync(id);
+        if (payment == null)
+            return NotFound(new { message = "Không tìm thấy hóa đơn học phí" });
+
+        // Authorization check: student can only delete their own payments
+        if (User.IsInRole("HocVien"))
+        {
+            var currentUserId = int.Parse(User.FindFirst("userId")?.Value ?? "0");
+            if (payment.StudentUserId != currentUserId)
+                return Forbid();
+        }
+
+        // Only allow deleting unpaid or pending payments
+        if (payment.Status == "HoanTat" || payment.PaidAmount > 0)
+        {
+            return BadRequest(new { message = "Không thể hủy hóa đơn học phí đã thanh toán hoặc đã đóng một phần" });
+        }
+
+        _paymentRepository.DeletePayment(payment);
+        var success = await _paymentRepository.SaveChangesAsync();
+        return Ok(success);
+    }
 }
 
 public class PayosCallbackDto

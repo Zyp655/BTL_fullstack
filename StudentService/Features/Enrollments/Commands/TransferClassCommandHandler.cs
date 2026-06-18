@@ -127,6 +127,9 @@ public class TransferClassCommandHandler : IRequestHandler<TransferClassCommand,
         result.StudentName = student.FullName;
         result.ClassName = targetClassInfo.ClassName;
         result.CourseName = targetClassInfo.CourseName;
+        result.Room = targetClassInfo.Room;
+        result.StartDate = targetClassInfo.StartDate;
+        result.EndDate = targetClassInfo.EndDate;
         return result;
     }
 }

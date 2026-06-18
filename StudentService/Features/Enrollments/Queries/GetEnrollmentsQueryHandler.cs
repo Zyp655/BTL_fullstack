@@ -32,6 +32,11 @@ public class GetEnrollmentsQueryHandler : IRequestHandler<GetEnrollmentsQuery, P
                 dto.ClassName = classInfo.ClassName;
                 dto.CourseName = classInfo.CourseName;
                 dto.CourseId = classInfo.CourseId;
+                dto.TeacherId = classInfo.TeacherId;
+                dto.TeacherName = classInfo.TeacherName;
+                dto.Room = classInfo.Room;
+                dto.StartDate = classInfo.StartDate;
+                dto.EndDate = classInfo.EndDate;
             }
             dtoList.Add(dto);
         }

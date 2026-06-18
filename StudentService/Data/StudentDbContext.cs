@@ -14,11 +14,20 @@ public class StudentDbContext : DbContext
     public DbSet<CourseQueue> CourseQueues => Set<CourseQueue>();
     public DbSet<StudentCredit> StudentCredits => Set<StudentCredit>();
     public DbSet<SupportMessage> SupportMessages => Set<SupportMessage>();
+    public DbSet<TeacherEvaluation> TeacherEvaluations => Set<TeacherEvaluation>();
+    public DbSet<EvaluationCriterion> EvaluationCriteria => Set<EvaluationCriterion>();
+    public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // EvaluationCriterion
+        modelBuilder.Entity<EvaluationCriterion>(entity =>
+        {
+            entity.HasIndex(e => e.Name).IsUnique();
+        });
 
         // Student
         modelBuilder.Entity<Student>(entity =>
@@ -74,6 +83,20 @@ public class StudentDbContext : DbContext
                   .OnDelete(DeleteBehavior.Cascade);
         });
 
+        // TeacherEvaluation
+        modelBuilder.Entity<TeacherEvaluation>(entity =>
+        {
+            entity.HasIndex(e => e.StudentId);
+            entity.HasIndex(e => e.ClassId);
+            entity.HasIndex(e => e.TeacherId);
+            entity.HasIndex(e => new { e.StudentId, e.ClassId }).IsUnique();
+
+            entity.HasOne(e => e.Student)
+                  .WithMany()
+                  .HasForeignKey(e => e.StudentId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
         // Attendance
         modelBuilder.Entity<Attendance>(entity =>
         {
@@ -103,6 +126,19 @@ public class StudentDbContext : DbContext
 
     private void SeedData(ModelBuilder modelBuilder)
     {
+        // Seed default evaluation criteria
+        modelBuilder.Entity<EvaluationCriterion>().HasData(
+            new EvaluationCriterion { Id = 1, Name = "Chất lượng giảng dạy", Description = "Truyền tải kiến thức, dễ hiểu, nhiệt huyết", IsActive = true },
+            new EvaluationCriterion { Id = 2, Name = "Thái độ & Hỗ trợ", Description = "Tận tình hỗ trợ học viên, giải đáp thắc mắc", IsActive = true },
+            new EvaluationCriterion { Id = 3, Name = "Tài liệu & Giáo trình", Description = "Đầy đủ tài liệu học tập, bài tập, slide", IsActive = true },
+            new EvaluationCriterion { Id = 4, Name = "Tác phong & Đúng giờ", Description = "Vào lớp đúng giờ, chuyên nghiệp, chuẩn mực", IsActive = true }
+        );
+
+        // Seed default system settings
+        modelBuilder.Entity<SystemSetting>().HasData(
+            new SystemSetting { Key = "IsEvaluationEnabled", Value = "true" }
+        );
+
         // Seed students (matching UserIds from PaymentService)
         modelBuilder.Entity<Student>().HasData(
 new Student
