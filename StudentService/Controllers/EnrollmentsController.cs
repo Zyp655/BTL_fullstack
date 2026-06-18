@@ -141,6 +141,28 @@ public class EnrollmentsController : ControllerBase
         return Ok(success);
     }
 
+    /// <summary>
+    /// Hủy đăng ký học của học viên (khi chưa thanh toán)
+    /// </summary>
+    [Authorize(Roles = "Admin,HocVien")]
+    [HttpDelete("cancel")]
+    public async Task<ActionResult<bool>> CancelEnrollment([FromQuery] int studentId, [FromQuery] int classId)
+    {
+        if (User.IsInRole("HocVien"))
+        {
+            var userId = int.Parse(User.FindFirst("userId")?.Value ?? "0");
+            var student = await _mediator.Send(new StudentService.Features.Students.Queries.GetStudentByUserIdQuery(userId));
+            if (student == null || student.StudentId != studentId)
+                return Forbid();
+        }
+
+        var success = await _mediator.Send(new CancelEnrollmentCommand(studentId, classId));
+        if (!success)
+            return NotFound(new { message = "Không tìm thấy đăng ký phù hợp để hủy" });
+
+        return Ok(success);
+    }
+
 
     /// <summary>
     /// Giải quyết lớp học bị hủy (bảo lưu, chuyển lớp, hoàn tiền)

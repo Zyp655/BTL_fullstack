@@ -207,6 +207,11 @@ public class PaymentRepository : IPaymentRepository
             .ToListAsync();
     }
 
+    public void DeletePayment(Payment payment)
+    {
+        _context.Payments.Remove(payment);
+    }
+
     public async Task<bool> SaveChangesAsync()
     {
         return await _context.SaveChangesAsync() > 0;

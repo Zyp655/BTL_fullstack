@@ -11,6 +11,7 @@ public interface IPaymentRepository
     Task<Payment?> GetPaymentByIdAsync(int id);
     Task AddPaymentAsync(Payment payment);
     void UpdatePayment(Payment payment);
+    void DeletePayment(Payment payment);
     Task<IEnumerable<PaymentTransaction>> GetTransactionsByPaymentIdAsync(int paymentId);
     Task AddTransactionAsync(PaymentTransaction transaction);
     Task<IEnumerable<Payment>> GetDebtsAsync();
