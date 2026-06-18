@@ -81,7 +81,8 @@ public class TeachersController : ControllerBase
             request.Phone,
             "GiaoVien",
             request.Specialization,
-            request.Degree
+            request.Degree,
+            request.BankAccount
         );
         var result = await _mediator.Send(command);
         if (result == null)
@@ -144,4 +145,5 @@ public class UpdateTeacherRequest
     public string? Phone { get; set; }
     public string? Specialization { get; set; }
     public string? Degree { get; set; }
+    public string? BankAccount { get; set; }
 }

@@ -34,6 +34,9 @@ public class User
     [MaxLength(100)]
     public string? Degree { get; set; }
 
+    [MaxLength(100)]
+    public string? BankAccount { get; set; }
+
     public bool IsActive { get; set; } = true;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

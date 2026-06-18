@@ -317,6 +317,65 @@ public class TeacherSalaryController : ControllerBase
     }
 
     /// <summary>
+    /// Giảng viên chấp nhận hoặc từ chối phiếu lương của bản thân (GiaoVien)
+    /// </summary>
+    [Authorize(Roles = "GiaoVien")]
+    [HttpPut("slips/{slipId:int}/feedback")]
+    public async Task<ActionResult<SalarySlipDto>> ProvideSlipFeedback(int slipId, [FromBody] TeacherSlipFeedbackDto dto)
+    {
+        var userIdStr = User.FindFirst("userId")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int teacherId))
+        {
+            return Unauthorized(new { message = "Không xác thực được tài khoản giảng viên" });
+        }
+
+        var slip = await _context.SalarySlips
+            .Include(s => s.Teacher)
+            .FirstOrDefaultAsync(s => s.SalarySlipId == slipId && s.TeacherId == teacherId);
+
+        if (slip == null)
+            return NotFound(new { message = $"Không tìm thấy phiếu lương ID {slipId} của bạn" });
+
+        if (slip.Status == "Paid")
+            return BadRequest(new { message = "Phiếu lương đã được thanh toán, không thể thay đổi trạng thái" });
+
+        if (dto.Accepted)
+        {
+            slip.Status = "Approved";
+            slip.Notes = string.IsNullOrEmpty(dto.Feedback) ? "Giảng viên đã chấp nhận" : $"Giảng viên đã chấp nhận: {dto.Feedback}";
+        }
+        else
+        {
+            slip.Status = "Rejected";
+            slip.Notes = $"Giảng viên phản hồi không hợp lý: {dto.Feedback}";
+        }
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new SalarySlipDto
+        {
+            SalarySlipId = slip.SalarySlipId,
+            TeacherId = slip.TeacherId,
+            TeacherName = slip.Teacher?.FullName ?? $"ID {slip.TeacherId}",
+            Month = slip.Month,
+            Year = slip.Year,
+            BaseSalary = slip.BaseSalary,
+            RatePerSession = slip.RatePerSession,
+            SessionsTaught = slip.SessionsTaught,
+            TotalStudentSessions = slip.TotalStudentSessions,
+            StudentAllowanceRate = slip.StudentAllowanceRate,
+            CalculatedSalary = slip.CalculatedSalary,
+            Bonus = slip.Bonus,
+            Deductions = slip.Deductions,
+            TotalAmount = slip.TotalAmount,
+            Status = slip.Status,
+            Notes = slip.Notes,
+            PaidAt = slip.PaidAt,
+            CreatedAt = slip.CreatedAt
+        });
+    }
+
+    /// <summary>
     /// Lấy thông tin dashboard tổng quan dành cho giảng viên (GiaoVien)
     /// </summary>
     [Authorize(Roles = "GiaoVien")]

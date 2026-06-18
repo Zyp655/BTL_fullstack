@@ -10,5 +10,6 @@ public record UpdateUserCommand(
     string? Phone,
     string Role,
     string? Specialization = null,
-    string? Degree = null
+    string? Degree = null,
+    string? BankAccount = null
 ) : IRequest<UserDto?>;

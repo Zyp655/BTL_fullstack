@@ -24,6 +24,7 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserD
         user.Role = request.Role;
         user.Specialization = request.Specialization;
         user.Degree = request.Degree;
+        user.BankAccount = request.BankAccount;
         user.UpdatedAt = DateTime.UtcNow;
 
         _userRepository.UpdateUser(user);

@@ -163,7 +163,8 @@ public class AuthController : ControllerBase
             dto.Phone,
             user.Role,
             user.Specialization,
-            user.Degree
+            user.Degree,
+            dto.BankAccount
         );
 
         var result = await _mediator.Send(command);

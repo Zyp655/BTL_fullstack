@@ -15,6 +15,7 @@ public static class UserMapper
         Role = u.Role,
         Specialization = u.Specialization,
         Degree = u.Degree,
+        BankAccount = u.BankAccount,
         IsActive = u.IsActive,
         CreatedAt = u.CreatedAt,
         UpdatedAt = u.UpdatedAt

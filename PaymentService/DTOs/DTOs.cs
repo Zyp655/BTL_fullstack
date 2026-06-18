@@ -53,6 +53,7 @@ public class UserDto
     public string Role { get; set; } = string.Empty;
     public string? Specialization { get; set; }
     public string? Degree { get; set; }
+    public string? BankAccount { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
@@ -66,6 +67,7 @@ public class UpdateUserDto
     public string Role { get; set; } = "HocVien";
     public string? Specialization { get; set; }
     public string? Degree { get; set; }
+    public string? BankAccount { get; set; }
 }
 
 public class UpdateProfileDto
@@ -73,6 +75,7 @@ public class UpdateProfileDto
     public string FullName { get; set; } = string.Empty;
     public string? Email { get; set; }
     public string? Phone { get; set; }
+    public string? BankAccount { get; set; }
 }
 
 public class ForgotPasswordDto
@@ -322,5 +325,11 @@ public class CourseInfoDto
     public int CourseId { get; set; }
     public string CourseName { get; set; } = string.Empty;
     public decimal Fee { get; set; }
+}
+
+public class TeacherSlipFeedbackDto
+{
+    public bool Accepted { get; set; }
+    public string? Feedback { get; set; }
 }
 
