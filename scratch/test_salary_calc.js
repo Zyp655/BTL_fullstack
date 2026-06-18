@@ -60,21 +60,20 @@ async function test() {
     const token = loginRes.data.token;
     console.log("Login successful! Token acquired.");
 
-    console.log("\nCalculating payroll for June 2026...");
+    console.log("\nCalculating payroll for March 2026...");
     const calcJuneRes = await post('http://localhost:5000/api/v1/teachers/salary/slips/calculate', {
-      month: 6,
+      month: 3,
       year: 2026
     }, token);
 
     if (calcJuneRes.statusCode === 200 && Array.isArray(calcJuneRes.data)) {
-      console.log("June 2026 - Selected Teacher Salaries:");
-      const an = calcJuneRes.data.find(s => s.teacherId === 2);
-      const cuong = calcJuneRes.data.find(s => s.teacherId === 4);
-      console.log("Nguyễn Văn An (ID 2):", JSON.stringify(an, null, 2));
-      console.log("Lê Văn Cường (ID 4):", JSON.stringify(cuong, null, 2));
+      console.log("March 2026 - All Teacher Salaries:");
+      calcJuneRes.data.forEach(s => {
+        console.log(`- ${s.teacherName} (ID ${s.teacherId}): sessionsTaught=${s.sessionsTaught}, totalStudentSessions=${s.totalStudentSessions}, totalAmount=${s.totalAmount} đ`);
+      });
     } else {
-      console.log("June 2026 Response status:", calcJuneRes.statusCode);
-      console.log("June 2026 Response data:", calcJuneRes.data);
+      console.log("March 2026 Response status:", calcJuneRes.statusCode);
+      console.log("March 2026 Response data:", calcJuneRes.data);
     }
 
     console.log("\nCalculating payroll for July 2026...");

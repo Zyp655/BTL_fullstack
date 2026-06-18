@@ -185,9 +185,9 @@ public class CourseDbContext : DbContext
                 MaxStudents = 30,
                 CurrentStudents = 0,
                 Status = "InProgress",
-                StartDate = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc),
-                EndDate = new DateTime(2026, 9, 10, 0, 0, 0, DateTimeKind.Utc),
-                CreatedAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc)
+                StartDate = new DateTime(2026, 3, 1, 0, 0, 0, DateTimeKind.Utc),
+                EndDate = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc),
+                CreatedAt = new DateTime(2026, 2, 15, 0, 0, 0, DateTimeKind.Utc)
             });
         }
 
