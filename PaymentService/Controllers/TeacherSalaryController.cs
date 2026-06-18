@@ -133,6 +133,7 @@ public class TeacherSalaryController : ControllerBase
             SalarySlipId = s.SalarySlipId,
             TeacherId = s.TeacherId,
             TeacherName = s.Teacher?.FullName ?? $"ID {s.TeacherId}",
+            BankAccount = s.Teacher?.BankAccount,
             Month = s.Month,
             Year = s.Year,
             BaseSalary = s.BaseSalary,
@@ -240,6 +241,7 @@ public class TeacherSalaryController : ControllerBase
                 SalarySlipId = slip.SalarySlipId,
                 TeacherId = slip.TeacherId,
                 TeacherName = teacher.FullName,
+                BankAccount = teacher.BankAccount,
                 Month = slip.Month,
                 Year = slip.Year,
                 BaseSalary = slip.BaseSalary,
@@ -288,6 +290,13 @@ public class TeacherSalaryController : ControllerBase
         {
             slip.Status = "Approved";
         }
+        else
+        {
+            if (slip.Status != "Paid")
+            {
+                slip.Status = "Pending";
+            }
+        }
 
         slip.TotalAmount = slip.CalculatedSalary + slip.Bonus - slip.Deductions;
 
@@ -298,6 +307,7 @@ public class TeacherSalaryController : ControllerBase
             SalarySlipId = slip.SalarySlipId,
             TeacherId = slip.TeacherId,
             TeacherName = slip.Teacher?.FullName ?? $"ID {slip.TeacherId}",
+            BankAccount = slip.Teacher?.BankAccount,
             Month = slip.Month,
             Year = slip.Year,
             BaseSalary = slip.BaseSalary,
@@ -357,6 +367,7 @@ public class TeacherSalaryController : ControllerBase
             SalarySlipId = slip.SalarySlipId,
             TeacherId = slip.TeacherId,
             TeacherName = slip.Teacher?.FullName ?? $"ID {slip.TeacherId}",
+            BankAccount = slip.Teacher?.BankAccount,
             Month = slip.Month,
             Year = slip.Year,
             BaseSalary = slip.BaseSalary,
@@ -448,6 +459,7 @@ public class TeacherSalaryController : ControllerBase
             SalarySlipId = s.SalarySlipId,
             TeacherId = s.TeacherId,
             TeacherName = s.Teacher?.FullName ?? $"ID {s.TeacherId}",
+            BankAccount = s.Teacher?.BankAccount,
             Month = s.Month,
             Year = s.Year,
             BaseSalary = s.BaseSalary,

@@ -268,6 +268,7 @@ public class SalarySlipDto
     public int SalarySlipId { get; set; }
     public int TeacherId { get; set; }
     public string TeacherName { get; set; } = string.Empty;
+    public string? BankAccount { get; set; }
     public int Month { get; set; }
     public int Year { get; set; }
     public decimal BaseSalary { get; set; }

@@ -34,7 +34,7 @@ public class User
     [MaxLength(100)]
     public string? Degree { get; set; }
 
-    [MaxLength(100)]
+    [MaxLength(1000)]
     public string? BankAccount { get; set; }
 
     public bool IsActive { get; set; } = true;
