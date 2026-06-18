@@ -191,6 +191,7 @@ public class ClassroomDto
     public string? Notes { get; set; }
     public string Status { get; set; } = "Vacant"; // Vacant, Occupied, Maintenance
     public string? CurrentClassName { get; set; }
+    public List<string> AssignedClasses { get; set; } = new();
 }
 
 public class UpdateClassroomMaintenanceDto

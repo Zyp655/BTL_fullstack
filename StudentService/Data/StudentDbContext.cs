@@ -1351,7 +1351,51 @@ new Student
             new Attendance { AttendanceId = 4, EnrollmentId = 2, SessionDate = new DateTime(2026, 3, 4, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 2, CreatedAt = new DateTime(2026, 3, 4, 0, 0, 0, DateTimeKind.Utc) },
             new Attendance { AttendanceId = 5, EnrollmentId = 2, SessionDate = new DateTime(2026, 3, 6, 0, 0, 0, DateTimeKind.Utc), Status = "Vang", Note = "Không phép", MarkedByTeacherId = 2, CreatedAt = new DateTime(2026, 3, 6, 0, 0, 0, DateTimeKind.Utc) },
             new Attendance { AttendanceId = 6, EnrollmentId = 3, SessionDate = new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 2, CreatedAt = new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Attendance { AttendanceId = 7, EnrollmentId = 3, SessionDate = new DateTime(2026, 4, 4, 0, 0, 0, DateTimeKind.Utc), Status = "CoPhep", Note = "Xin phép nghỉ", MarkedByTeacherId = 2, CreatedAt = new DateTime(2026, 4, 4, 0, 0, 0, DateTimeKind.Utc) }
+            new Attendance { AttendanceId = 7, EnrollmentId = 3, SessionDate = new DateTime(2026, 4, 4, 0, 0, 0, DateTimeKind.Utc), Status = "CoPhep", Note = "Xin phép nghỉ", MarkedByTeacherId = 2, CreatedAt = new DateTime(2026, 4, 4, 0, 0, 0, DateTimeKind.Utc) },
+
+            // Seed attendances in June 2026 for Nguyễn Văn An (UserId = 2, ClassId = 3, EnrollmentId = 8..11)
+            new Attendance { AttendanceId = 8, EnrollmentId = 8, SessionDate = new DateTime(2026, 6, 3, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 2, CreatedAt = new DateTime(2026, 6, 3, 0, 0, 0, DateTimeKind.Utc) },
+            new Attendance { AttendanceId = 9, EnrollmentId = 9, SessionDate = new DateTime(2026, 6, 3, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 2, CreatedAt = new DateTime(2026, 6, 3, 0, 0, 0, DateTimeKind.Utc) },
+            new Attendance { AttendanceId = 10, EnrollmentId = 10, SessionDate = new DateTime(2026, 6, 3, 0, 0, 0, DateTimeKind.Utc), Status = "DiTre", MarkedByTeacherId = 2, CreatedAt = new DateTime(2026, 6, 3, 0, 0, 0, DateTimeKind.Utc) },
+            new Attendance { AttendanceId = 11, EnrollmentId = 11, SessionDate = new DateTime(2026, 6, 3, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 2, CreatedAt = new DateTime(2026, 6, 3, 0, 0, 0, DateTimeKind.Utc) },
+
+            new Attendance { AttendanceId = 12, EnrollmentId = 8, SessionDate = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 2, CreatedAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc) },
+            new Attendance { AttendanceId = 13, EnrollmentId = 9, SessionDate = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc), Status = "Vang", MarkedByTeacherId = 2, CreatedAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc) },
+            new Attendance { AttendanceId = 14, EnrollmentId = 10, SessionDate = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 2, CreatedAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc) },
+            new Attendance { AttendanceId = 15, EnrollmentId = 11, SessionDate = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 2, CreatedAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc) },
+
+            new Attendance { AttendanceId = 16, EnrollmentId = 8, SessionDate = new DateTime(2026, 6, 17, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 2, CreatedAt = new DateTime(2026, 6, 17, 0, 0, 0, DateTimeKind.Utc) },
+            new Attendance { AttendanceId = 17, EnrollmentId = 9, SessionDate = new DateTime(2026, 6, 17, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 2, CreatedAt = new DateTime(2026, 6, 17, 0, 0, 0, DateTimeKind.Utc) },
+            new Attendance { AttendanceId = 18, EnrollmentId = 10, SessionDate = new DateTime(2026, 6, 17, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 2, CreatedAt = new DateTime(2026, 6, 17, 0, 0, 0, DateTimeKind.Utc) },
+            new Attendance { AttendanceId = 19, EnrollmentId = 11, SessionDate = new DateTime(2026, 6, 17, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 2, CreatedAt = new DateTime(2026, 6, 17, 0, 0, 0, DateTimeKind.Utc) },
+
+            new Attendance { AttendanceId = 20, EnrollmentId = 8, SessionDate = new DateTime(2026, 6, 24, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 2, CreatedAt = new DateTime(2026, 6, 24, 0, 0, 0, DateTimeKind.Utc) },
+            new Attendance { AttendanceId = 21, EnrollmentId = 9, SessionDate = new DateTime(2026, 6, 24, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 2, CreatedAt = new DateTime(2026, 6, 24, 0, 0, 0, DateTimeKind.Utc) },
+            new Attendance { AttendanceId = 22, EnrollmentId = 10, SessionDate = new DateTime(2026, 6, 24, 0, 0, 0, DateTimeKind.Utc), Status = "DiTre", MarkedByTeacherId = 2, CreatedAt = new DateTime(2026, 6, 24, 0, 0, 0, DateTimeKind.Utc) },
+            new Attendance { AttendanceId = 23, EnrollmentId = 11, SessionDate = new DateTime(2026, 6, 24, 0, 0, 0, DateTimeKind.Utc), Status = "Vang", MarkedByTeacherId = 2, CreatedAt = new DateTime(2026, 6, 24, 0, 0, 0, DateTimeKind.Utc) },
+
+            // Seed attendances in July 2026 for Lê Thị Hoa (UserId = 5, ClassId = 28, EnrollmentId = 38..39)
+            new Attendance { AttendanceId = 24, EnrollmentId = 38, SessionDate = new DateTime(2026, 7, 20, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 5, CreatedAt = new DateTime(2026, 7, 20, 0, 0, 0, DateTimeKind.Utc) },
+            new Attendance { AttendanceId = 25, EnrollmentId = 39, SessionDate = new DateTime(2026, 7, 20, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 5, CreatedAt = new DateTime(2026, 7, 20, 0, 0, 0, DateTimeKind.Utc) },
+            new Attendance { AttendanceId = 26, EnrollmentId = 38, SessionDate = new DateTime(2026, 7, 27, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 5, CreatedAt = new DateTime(2026, 7, 27, 0, 0, 0, DateTimeKind.Utc) },
+            new Attendance { AttendanceId = 27, EnrollmentId = 39, SessionDate = new DateTime(2026, 7, 27, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 5, CreatedAt = new DateTime(2026, 7, 27, 0, 0, 0, DateTimeKind.Utc) },
+
+            // Seed attendances in June 2026 for Lê Văn Cường (UserId = 4, ClassId = 4, EnrollmentId = 12..14)
+            new Attendance { AttendanceId = 28, EnrollmentId = 12, SessionDate = new DateTime(2026, 6, 4, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 4, CreatedAt = new DateTime(2026, 6, 4, 0, 0, 0, DateTimeKind.Utc) },
+            new Attendance { AttendanceId = 29, EnrollmentId = 13, SessionDate = new DateTime(2026, 6, 4, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 4, CreatedAt = new DateTime(2026, 6, 4, 0, 0, 0, DateTimeKind.Utc) },
+            new Attendance { AttendanceId = 30, EnrollmentId = 14, SessionDate = new DateTime(2026, 6, 4, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 4, CreatedAt = new DateTime(2026, 6, 4, 0, 0, 0, DateTimeKind.Utc) },
+
+            new Attendance { AttendanceId = 31, EnrollmentId = 12, SessionDate = new DateTime(2026, 6, 11, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 4, CreatedAt = new DateTime(2026, 6, 11, 0, 0, 0, DateTimeKind.Utc) },
+            new Attendance { AttendanceId = 32, EnrollmentId = 13, SessionDate = new DateTime(2026, 6, 11, 0, 0, 0, DateTimeKind.Utc), Status = "DiTre", MarkedByTeacherId = 4, CreatedAt = new DateTime(2026, 6, 11, 0, 0, 0, DateTimeKind.Utc) },
+            new Attendance { AttendanceId = 33, EnrollmentId = 14, SessionDate = new DateTime(2026, 6, 11, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 4, CreatedAt = new DateTime(2026, 6, 11, 0, 0, 0, DateTimeKind.Utc) },
+
+            new Attendance { AttendanceId = 34, EnrollmentId = 12, SessionDate = new DateTime(2026, 6, 18, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 4, CreatedAt = new DateTime(2026, 6, 18, 0, 0, 0, DateTimeKind.Utc) },
+            new Attendance { AttendanceId = 35, EnrollmentId = 13, SessionDate = new DateTime(2026, 6, 18, 0, 0, 0, DateTimeKind.Utc), Status = "Vang", MarkedByTeacherId = 4, CreatedAt = new DateTime(2026, 6, 18, 0, 0, 0, DateTimeKind.Utc) },
+            new Attendance { AttendanceId = 36, EnrollmentId = 14, SessionDate = new DateTime(2026, 6, 18, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 4, CreatedAt = new DateTime(2026, 6, 18, 0, 0, 0, DateTimeKind.Utc) },
+
+            new Attendance { AttendanceId = 37, EnrollmentId = 12, SessionDate = new DateTime(2026, 6, 25, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 4, CreatedAt = new DateTime(2026, 6, 25, 0, 0, 0, DateTimeKind.Utc) },
+            new Attendance { AttendanceId = 38, EnrollmentId = 13, SessionDate = new DateTime(2026, 6, 25, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 4, CreatedAt = new DateTime(2026, 6, 25, 0, 0, 0, DateTimeKind.Utc) },
+            new Attendance { AttendanceId = 39, EnrollmentId = 14, SessionDate = new DateTime(2026, 6, 25, 0, 0, 0, DateTimeKind.Utc), Status = "CoMat", MarkedByTeacherId = 4, CreatedAt = new DateTime(2026, 6, 25, 0, 0, 0, DateTimeKind.Utc) }
         );
 
         // Seed exam results

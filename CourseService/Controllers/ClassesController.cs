@@ -55,7 +55,7 @@ public class ClassesController : ControllerBase
     /// <summary>
     /// Lấy danh sách lớp theo giáo viên
     /// </summary>
-    [Authorize(Roles = "Admin,GiaoVien")]
+    [AllowAnonymous]
     [HttpGet("teacher/{teacherId}")]
     public async Task<ActionResult<List<ClassDto>>> GetClassesByTeacher(int teacherId)
     {

@@ -53,6 +53,11 @@ public class ClassroomsController : ControllerBase
             .Where(c => c.Status == "InProgress")
             .ToListAsync();
 
+        // Lấy danh sách tất cả các lớp đang mở hoặc đang học để lấy danh sách lớp phân công
+        var allServiceClasses = await _context.Classes
+            .Where(c => c.Status == "InProgress" || c.Status == "Opened")
+            .ToListAsync();
+
         var result = new List<ClassroomDto>();
 
         foreach (var room in classrooms)
@@ -63,6 +68,11 @@ public class ClassroomsController : ControllerBase
                 IsMaintenance = room.IsMaintenance,
                 Notes = room.Notes
             };
+
+            dto.AssignedClasses = allServiceClasses
+                .Where(c => MatchRoom(c.Room, room.RoomNumber))
+                .Select(c => c.ClassName)
+                .ToList();
 
             if (room.IsMaintenance)
             {
@@ -129,12 +139,21 @@ public class ClassroomsController : ControllerBase
             .Where(c => c.Status == "InProgress")
             .ToListAsync();
 
+        var allServiceClasses = await _context.Classes
+            .Where(c => c.Status == "InProgress" || c.Status == "Opened")
+            .ToListAsync();
+
         var resultDto = new ClassroomDto
         {
             RoomNumber = room.RoomNumber,
             IsMaintenance = room.IsMaintenance,
             Notes = room.Notes
         };
+
+        resultDto.AssignedClasses = allServiceClasses
+            .Where(c => MatchRoom(c.Room, room.RoomNumber))
+            .Select(c => c.ClassName)
+            .ToList();
 
         if (room.IsMaintenance)
         {

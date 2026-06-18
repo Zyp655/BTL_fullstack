@@ -102,15 +102,15 @@ public class CourseDbContext : DbContext
 
         var classes = new List<Class>
         {
-            new Class { ClassId = 1, CourseId = 1, ClassName = "TA-CB-01", TeacherId = 2, TeacherName = "Nguyễn Văn An", Room = "P.101", MaxStudents = 25, CurrentStudents = 5, Status = "InProgress", StartDate = new DateTime(2026, 3, 1, 0, 0, 0, DateTimeKind.Utc), EndDate = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 2, 15, 0, 0, 0, DateTimeKind.Utc) },
-            new Class { ClassId = 2, CourseId = 1, ClassName = "TA-CB-02", TeacherId = 3, TeacherName = "Trần Thị Bình", Room = "P.102", MaxStudents = 30, CurrentStudents = 2, Status = "Opened", StartDate = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc), EndDate = new DateTime(2026, 10, 1, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Class { ClassId = 3, CourseId = 2, ClassName = "TOEIC-01", TeacherId = 2, TeacherName = "Nguyễn Văn An", Room = "P.201", MaxStudents = 20, CurrentStudents = 4, Status = "InProgress", StartDate = new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc), EndDate = new DateTime(2026, 8, 1, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 3, 15, 0, 0, 0, DateTimeKind.Utc) },
-            new Class { ClassId = 4, CourseId = 3, ClassName = "PY-01", TeacherId = 4, TeacherName = "Lê Văn Cường", Room = "P.Lab1", MaxStudents = 20, CurrentStudents = 3, Status = "InProgress", StartDate = new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc), EndDate = new DateTime(2026, 8, 1, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 4, 15, 0, 0, 0, DateTimeKind.Utc) },
-            new Class { ClassId = 5, CourseId = 8, ClassName = "FS-REACT-01", TeacherId = 4, TeacherName = "Lê Văn Cường", Room = "P.Lab2", MaxStudents = 24, CurrentStudents = 6, Status = "InProgress", StartDate = new DateTime(2026, 5, 15, 0, 0, 0, DateTimeKind.Utc), EndDate = new DateTime(2026, 8, 15, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Class { ClassId = 6, CourseId = 9, ClassName = "KN-QLTG-01", TeacherId = 5, TeacherName = "Lê Thị Hoa", Room = "P.301", MaxStudents = 40, CurrentStudents = 2, Status = "Opened", StartDate = new DateTime(2026, 7, 10, 0, 0, 0, DateTimeKind.Utc), EndDate = new DateTime(2026, 8, 10, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 6, 15, 0, 0, 0, DateTimeKind.Utc) },
-            new Class { ClassId = 7, CourseId = 10, ClassName = "JP-N5-01", TeacherId = 9, TeacherName = "Phạm Văn Khánh", Room = "P.103", MaxStudents = 20, CurrentStudents = 3, Status = "Opened", StartDate = new DateTime(2026, 8, 1, 0, 0, 0, DateTimeKind.Utc), EndDate = new DateTime(2026, 11, 1, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Class { ClassId = 8, CourseId = 11, ClassName = "VUEJS-01", TeacherId = 4, TeacherName = "Lê Văn Cường", Room = "P.Lab1", MaxStudents = 20, CurrentStudents = 3, Status = "InProgress", StartDate = new DateTime(2026, 5, 10, 0, 0, 0, DateTimeKind.Utc), EndDate = new DateTime(2026, 8, 10, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 4, 20, 0, 0, 0, DateTimeKind.Utc) },
-            new Class { ClassId = 28, CourseId = 14, ClassName = "CS-NC-01", TeacherId = 5, TeacherName = "Lê Thị Hoa", Room = "P.Lab3", MaxStudents = 30, CurrentStudents = 2, Status = "InProgress", StartDate = new DateTime(2026, 7, 15, 0, 0, 0, DateTimeKind.Utc), EndDate = new DateTime(2026, 10, 15, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc) }
+            new Class { ClassId = 1, CourseId = 1, ClassName = "TA-CB-01", TeacherId = 2, TeacherName = "Nguyễn Văn An", Room = "301", MaxStudents = 25, CurrentStudents = 5, Status = "InProgress", StartDate = new DateTime(2026, 3, 1, 0, 0, 0, DateTimeKind.Utc), EndDate = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 2, 15, 0, 0, 0, DateTimeKind.Utc) },
+            new Class { ClassId = 2, CourseId = 1, ClassName = "TA-CB-02", TeacherId = 3, TeacherName = "Trần Thị Bình", Room = "302", MaxStudents = 30, CurrentStudents = 2, Status = "Opened", StartDate = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc), EndDate = new DateTime(2026, 10, 1, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Class { ClassId = 3, CourseId = 2, ClassName = "TOEIC-01", TeacherId = 2, TeacherName = "Nguyễn Văn An", Room = "303", MaxStudents = 20, CurrentStudents = 4, Status = "InProgress", StartDate = new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc), EndDate = new DateTime(2026, 8, 1, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 3, 15, 0, 0, 0, DateTimeKind.Utc) },
+            new Class { ClassId = 4, CourseId = 3, ClassName = "PY-01", TeacherId = 4, TeacherName = "Lê Văn Cường", Room = "304", MaxStudents = 20, CurrentStudents = 3, Status = "InProgress", StartDate = new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc), EndDate = new DateTime(2026, 8, 1, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 4, 15, 0, 0, 0, DateTimeKind.Utc) },
+            new Class { ClassId = 5, CourseId = 8, ClassName = "FS-REACT-01", TeacherId = 4, TeacherName = "Lê Văn Cường", Room = "305", MaxStudents = 24, CurrentStudents = 6, Status = "InProgress", StartDate = new DateTime(2026, 5, 15, 0, 0, 0, DateTimeKind.Utc), EndDate = new DateTime(2026, 8, 15, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Class { ClassId = 6, CourseId = 9, ClassName = "KN-QLTG-01", TeacherId = 5, TeacherName = "Lê Thị Hoa", Room = "306", MaxStudents = 40, CurrentStudents = 2, Status = "Opened", StartDate = new DateTime(2026, 7, 10, 0, 0, 0, DateTimeKind.Utc), EndDate = new DateTime(2026, 8, 10, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 6, 15, 0, 0, 0, DateTimeKind.Utc) },
+            new Class { ClassId = 7, CourseId = 10, ClassName = "JP-N5-01", TeacherId = 9, TeacherName = "Phạm Văn Khánh", Room = "307", MaxStudents = 20, CurrentStudents = 3, Status = "Opened", StartDate = new DateTime(2026, 8, 1, 0, 0, 0, DateTimeKind.Utc), EndDate = new DateTime(2026, 11, 1, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Class { ClassId = 8, CourseId = 11, ClassName = "VUEJS-01", TeacherId = 4, TeacherName = "Lê Văn Cường", Room = "308", MaxStudents = 20, CurrentStudents = 3, Status = "InProgress", StartDate = new DateTime(2026, 5, 10, 0, 0, 0, DateTimeKind.Utc), EndDate = new DateTime(2026, 8, 10, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 4, 20, 0, 0, 0, DateTimeKind.Utc) },
+            new Class { ClassId = 28, CourseId = 14, ClassName = "CS-NC-01", TeacherId = 5, TeacherName = "Lê Thị Hoa", Room = "309", MaxStudents = 30, CurrentStudents = 2, Status = "InProgress", StartDate = new DateTime(2026, 7, 15, 0, 0, 0, DateTimeKind.Utc), EndDate = new DateTime(2026, 10, 15, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc) }
         };
 
         var schedules = new List<Schedule>
@@ -181,7 +181,7 @@ public class CourseDbContext : DbContext
                 ClassName = $"Lớp-TC-{i:000}",
                 TeacherId = teacher.Id,
                 TeacherName = teacher.Name,
-                Room = $"P.{(100 + i % 20)}",
+                Room = $"30{(i % 9) + 1}",
                 MaxStudents = 30,
                 CurrentStudents = 0,
                 Status = "InProgress",
@@ -218,7 +218,7 @@ public class CourseDbContext : DbContext
                 ClassName = $"Lớp-Lth-{i:00}",
                 TeacherId = 5,
                 TeacherName = "Lê Thị Hoa",
-                Room = $"P.Lab-{i}",
+                Room = $"30{(i % 9) + 1}",
                 MaxStudents = 30,
                 CurrentStudents = 15,
                 Status = "InProgress",
