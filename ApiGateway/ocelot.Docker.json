@@ -92,6 +92,20 @@
       "UpstreamHttpMethod": [ "GET", "POST" ]
     },
     {
+      "DownstreamPathTemplate": "/api/v1/course-evaluations/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "student-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/course-evaluations/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/course-evaluations",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "student-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/course-evaluations",
+      "UpstreamHttpMethod": [ "GET", "POST" ]
+    },
+    {
       "DownstreamPathTemplate": "/hubs/support/negotiate",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [{ "Host": "student-service", "Port": 8080 }],

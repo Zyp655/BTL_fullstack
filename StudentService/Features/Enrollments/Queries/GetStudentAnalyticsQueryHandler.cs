@@ -68,8 +68,9 @@ public class GetStudentAnalyticsQueryHandler : IRequestHandler<GetStudentAnalyti
             var present = e.Attendances.Count(a => a.Status == "CoMat");
             var absent = e.Attendances.Count(a => a.Status == "Vang");
             var late = e.Attendances.Count(a => a.Status == "DiTre");
+            var excused = e.Attendances.Count(a => a.Status == "CoPhep");
             
-            var attendanceRate = total > 0 ? Math.Round((double)(present + late) / total * 100, 1) : 0;
+            var attendanceRate = total > 0 ? Math.Min(100.0, Math.Round((double)(present + excused + late) / total * 100, 1)) : 100.0;
 
             if (attendanceRate < 80 || absent >= 2)
             {

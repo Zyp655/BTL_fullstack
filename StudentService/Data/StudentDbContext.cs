@@ -17,6 +17,7 @@ public class StudentDbContext : DbContext
     public DbSet<TeacherEvaluation> TeacherEvaluations => Set<TeacherEvaluation>();
     public DbSet<EvaluationCriterion> EvaluationCriteria => Set<EvaluationCriterion>();
     public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
+    public DbSet<CourseEvaluation> CourseEvaluations => Set<CourseEvaluation>();
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -90,6 +91,19 @@ public class StudentDbContext : DbContext
             entity.HasIndex(e => e.ClassId);
             entity.HasIndex(e => e.TeacherId);
             entity.HasIndex(e => new { e.StudentId, e.ClassId }).IsUnique();
+
+            entity.HasOne(e => e.Student)
+                  .WithMany()
+                  .HasForeignKey(e => e.StudentId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // CourseEvaluation
+        modelBuilder.Entity<CourseEvaluation>(entity =>
+        {
+            entity.HasIndex(e => e.StudentId);
+            entity.HasIndex(e => e.CourseId);
+            entity.HasIndex(e => new { e.StudentId, e.CourseId }).IsUnique();
 
             entity.HasOne(e => e.Student)
                   .WithMany()
@@ -1603,6 +1617,21 @@ new Student
                 Comment = "Lịch học đúng giờ, tài liệu phong phú.",
                 CreatedAt = new DateTime(2026, 6, 7, 0, 0, 0, DateTimeKind.Utc)
             }
+        );
+
+        modelBuilder.Entity<CourseEvaluation>().HasData(
+            new CourseEvaluation { Id = 1, StudentId = 1, CourseId = 1, Rating = 5, Comment = "Khóa học tiếng Anh giao tiếp rất thiết thực, bài học dễ hiểu.", CreatedAt = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new CourseEvaluation { Id = 2, StudentId = 2, CourseId = 1, Rating = 4, Comment = "Nội dung phong phú, tuy nhiên phòng học hơi nhỏ.", CreatedAt = new DateTime(2026, 6, 2, 0, 0, 0, DateTimeKind.Utc) },
+            new CourseEvaluation { Id = 3, StudentId = 3, CourseId = 1, Rating = 5, Comment = "Khóa học tuyệt vời cho người bắt đầu giao tiếp tiếng Anh.", CreatedAt = new DateTime(2026, 6, 3, 0, 0, 0, DateTimeKind.Utc) },
+            new CourseEvaluation { Id = 4, StudentId = 6, CourseId = 1, Rating = 4, Comment = "Chương trình học bài bản, giáo viên tận tình.", CreatedAt = new DateTime(2026, 6, 4, 0, 0, 0, DateTimeKind.Utc) },
+            new CourseEvaluation { Id = 5, StudentId = 1, CourseId = 2, Rating = 5, Comment = "Tập trung nhiều mẹo thi hữu ích, giúp tăng điểm nhanh chóng.", CreatedAt = new DateTime(2026, 6, 5, 0, 0, 0, DateTimeKind.Utc) },
+            new CourseEvaluation { Id = 6, StudentId = 5, CourseId = 2, Rating = 4, Comment = "Khóa học tốt, đề thi thử sát với đề thi thật.", CreatedAt = new DateTime(2026, 6, 6, 0, 0, 0, DateTimeKind.Utc) },
+            new CourseEvaluation { Id = 7, StudentId = 7, CourseId = 2, Rating = 4, Comment = "Giáo trình chi tiết, dễ tiếp thu.", CreatedAt = new DateTime(2026, 6, 7, 0, 0, 0, DateTimeKind.Utc) },
+            new CourseEvaluation { Id = 8, StudentId = 1, CourseId = 3, Rating = 5, Comment = "Lập trình Python rất cơ bản, phù hợp với người chưa biết gì.", CreatedAt = new DateTime(2026, 6, 8, 0, 0, 0, DateTimeKind.Utc) },
+            new CourseEvaluation { Id = 9, StudentId = 2, CourseId = 3, Rating = 5, Comment = "Thực hành nhiều bài tập trực quan.", CreatedAt = new DateTime(2026, 6, 9, 0, 0, 0, DateTimeKind.Utc) },
+            new CourseEvaluation { Id = 10, StudentId = 4, CourseId = 3, Rating = 3, Comment = "Nội dung hơi nhanh ở những buổi cuối.", CreatedAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc) },
+            new CourseEvaluation { Id = 11, StudentId = 3, CourseId = 8, Rating = 5, Comment = "Fullstack React & Nodejs dạy rất thực tế, làm được project ngay.", CreatedAt = new DateTime(2026, 6, 11, 0, 0, 0, DateTimeKind.Utc) },
+            new CourseEvaluation { Id = 12, StudentId = 5, CourseId = 8, Rating = 4, Comment = "Kiến thức nhiều và nặng, cần tự học nhiều.", CreatedAt = new DateTime(2026, 6, 12, 0, 0, 0, DateTimeKind.Utc) }
         );
     }
 }

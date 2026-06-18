@@ -70,7 +70,7 @@ public class GetAttendanceSummaryQueryHandler : IRequestHandler<GetAttendanceSum
                 Absent = absent,
                 Late = late,
                 Excused = excused,
-                AttendanceRate = total > 0 ? Math.Round((double)(present + late) / total * 100, 1) : 0,
+                AttendanceRate = total > 0 ? Math.Min(100.0, Math.Round((double)(present + excused + late) / total * 100, 1)) : 100.0,
                 Sessions = e.Attendances.Select(a => new AttendanceSessionDto
                 {
                     AttendanceId = a.AttendanceId,
