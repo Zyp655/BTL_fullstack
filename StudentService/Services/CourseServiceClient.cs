@@ -69,9 +69,11 @@ public class ClassInfoDto
     public string ClassName { get; set; } = string.Empty;
     public string CourseName { get; set; } = string.Empty;
     public int? TeacherId { get; set; }
+    public string? TeacherName { get; set; }
     public int MaxStudents { get; set; }
     public int CurrentStudents { get; set; }
     public string Status { get; set; } = string.Empty;
+    public string? Room { get; set; }
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     public List<ScheduleInfoDto> Schedules { get; set; } = new();

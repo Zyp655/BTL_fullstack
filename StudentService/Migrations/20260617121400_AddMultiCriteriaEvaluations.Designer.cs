@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StudentService.Data;
 
@@ -11,9 +12,11 @@ using StudentService.Data;
 namespace StudentService.Migrations
 {
     [DbContext(typeof(StudentDbContext))]
-    partial class StudentDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260617121400_AddMultiCriteriaEvaluations")]
+    partial class AddMultiCriteriaEvaluations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2836,64 +2839,6 @@ namespace StudentService.Migrations
                         });
                 });
 
-            modelBuilder.Entity("StudentService.Models.EvaluationCriterion", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("EvaluationCriteria");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Description = "Truyền tải kiến thức, dễ hiểu, nhiệt huyết",
-                            IsActive = true,
-                            Name = "Chất lượng giảng dạy"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Description = "Tận tình hỗ trợ học viên, giải đáp thắc mắc",
-                            IsActive = true,
-                            Name = "Thái độ & Hỗ trợ"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Description = "Đầy đủ tài liệu học tập, bài tập, slide",
-                            IsActive = true,
-                            Name = "Tài liệu & Giáo trình"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Description = "Vào lớp đúng giờ, chuyên nghiệp, chuẩn mực",
-                            IsActive = true,
-                            Name = "Tác phong & Đúng giờ"
-                        });
-                });
-
             modelBuilder.Entity("StudentService.Models.ExamResult", b =>
                 {
                     b.Property<int>("ResultId")
@@ -4295,29 +4240,6 @@ namespace StudentService.Migrations
                     b.ToTable("SupportMessages");
                 });
 
-            modelBuilder.Entity("StudentService.Models.SystemSetting", b =>
-                {
-                    b.Property<string>("Key")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.HasKey("Key");
-
-                    b.ToTable("SystemSettings");
-
-                    b.HasData(
-                        new
-                        {
-                            Key = "IsEvaluationEnabled",
-                            Value = "true"
-                        });
-                });
-
             modelBuilder.Entity("StudentService.Models.TeacherEvaluation", b =>
                 {
                     b.Property<int>("Id")
@@ -4338,9 +4260,6 @@ namespace StudentService.Migrations
 
                     b.Property<int>("CurriculumRating")
                         .HasColumnType("int");
-
-                    b.Property<string>("DetailedRatingsJson")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("PunctualityRating")
                         .HasColumnType("int");

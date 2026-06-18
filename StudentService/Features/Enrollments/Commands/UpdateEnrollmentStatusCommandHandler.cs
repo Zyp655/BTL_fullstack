@@ -69,6 +69,9 @@ public class UpdateEnrollmentStatusCommandHandler : IRequestHandler<UpdateEnroll
         {
             result.ClassName = classInfo.ClassName;
             result.CourseName = classInfo.CourseName;
+            result.Room = classInfo.Room;
+            result.StartDate = classInfo.StartDate;
+            result.EndDate = classInfo.EndDate;
         }
         return result;
     }

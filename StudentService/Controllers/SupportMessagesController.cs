@@ -124,7 +124,7 @@ public class SupportMessagesController : ControllerBase
     /// </summary>
     [Authorize(Roles = "Admin")]
     [HttpPost("{id}/resolve")]
-    public async Task<ActionResult<SupportMessageDto>> ResolveMessage(int id)
+    public async Task<ActionResult<SupportMessageDto>> ResolveMessage(int id, [FromBody] ResolveSupportMessageDto? dto)
     {
         var msg = await _context.SupportMessages
             .Include(m => m.Student)
@@ -151,6 +151,10 @@ public class SupportMessagesController : ControllerBase
         }
 
         msg.Status = "Resolved";
+        if (dto != null && !string.IsNullOrWhiteSpace(dto.AdminResponse))
+        {
+            msg.AdminResponse = dto.AdminResponse;
+        }
         _context.SupportMessages.Update(msg);
         await _context.SaveChangesAsync();
 
@@ -158,6 +162,7 @@ public class SupportMessagesController : ControllerBase
         await _hubContext.Clients.Group($"Student_{msg.StudentId}").SendAsync("SupportMessageStatusChanged", result);
         return Ok(result);
     }
+
 
     /// <summary>
     /// Admin rejects the support request.

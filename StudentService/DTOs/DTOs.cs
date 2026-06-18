@@ -53,9 +53,14 @@ public class EnrollmentDto
     public string? ClassName { get; set; }
     public string? CourseName { get; set; }
     public int CourseId { get; set; }
+    public int? TeacherId { get; set; }
+    public string? TeacherName { get; set; }
     public string Status { get; set; } = string.Empty;
     public DateTime EnrolledAt { get; set; }
     public DateTime? CompletedAt { get; set; }
+    public string? Room { get; set; }
+    public DateTime? StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
 }
 
 public class UpdateEnrollmentStatusDto
@@ -259,6 +264,12 @@ public class RejectSupportMessageDto
     public string? AdminResponse { get; set; }
 }
 
+public class ResolveSupportMessageDto
+{
+    public string? AdminResponse { get; set; }
+}
+
+
 public class UpdateSupportMessageDto
 {
     public string Message { get; set; } = string.Empty;
@@ -277,6 +288,79 @@ public class TeacherAttendanceStatsDto
     public int SessionsTaught { get; set; }
     public int TotalStudentSessions { get; set; }
 }
+
+// ===== TeacherEvaluation DTOs =====
+public class EvaluationCriterionDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public bool IsActive { get; set; }
+}
+
+public class CreateEvaluationCriterionDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public bool IsActive { get; set; } = true;
+}
+
+public class DetailedRatingDto
+{
+    public int CriterionId { get; set; }
+    public string CriterionName { get; set; } = string.Empty;
+    public int Rating { get; set; }
+}
+
+public class CreateTeacherEvaluationDto
+{
+    public int ClassId { get; set; }
+    public int TeachingQualityRating { get; set; }
+    public int SupportRating { get; set; }
+    public int CurriculumRating { get; set; }
+    public int PunctualityRating { get; set; }
+    public string? Comment { get; set; }
+    public int? StudentId { get; set; }
+    public List<DetailedRatingDto>? DetailedRatings { get; set; }
+}
+
+public class TeacherEvaluationDto
+{
+    public int Id { get; set; }
+    public int StudentId { get; set; }
+    public string StudentName { get; set; } = string.Empty;
+    public int ClassId { get; set; }
+    public string ClassName { get; set; } = string.Empty;
+    public int TeacherId { get; set; }
+    public int TeachingQualityRating { get; set; }
+    public int SupportRating { get; set; }
+    public int CurriculumRating { get; set; }
+    public int PunctualityRating { get; set; }
+    public double Rating { get; set; }
+    public string? Comment { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public List<DetailedRatingDto>? DetailedRatings { get; set; }
+}
+
+public class TeacherEvaluationSummaryDto
+{
+    public int TeacherId { get; set; }
+    public double AverageRating { get; set; }
+    public int TotalEvaluations { get; set; }
+    public Dictionary<int, int> RatingDistribution { get; set; } = new();
+    public List<TeacherEvaluationDto> Evaluations { get; set; } = new();
+}
+
+public class EvaluationStatusUpdateDto
+{
+    public bool IsEvaluationEnabled { get; set; }
+}
+
+public class EvaluationClassesUpdateDto
+{
+    public List<int> ClassIds { get; set; } = new();
+}
+
 
 
 

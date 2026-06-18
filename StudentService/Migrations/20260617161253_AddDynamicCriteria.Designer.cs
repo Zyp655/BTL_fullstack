@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StudentService.Data;
 
@@ -11,9 +12,11 @@ using StudentService.Data;
 namespace StudentService.Migrations
 {
     [DbContext(typeof(StudentDbContext))]
-    partial class StudentDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260617161253_AddDynamicCriteria")]
+    partial class AddDynamicCriteria
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -4293,29 +4296,6 @@ namespace StudentService.Migrations
                     b.HasIndex("StudentId");
 
                     b.ToTable("SupportMessages");
-                });
-
-            modelBuilder.Entity("StudentService.Models.SystemSetting", b =>
-                {
-                    b.Property<string>("Key")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.HasKey("Key");
-
-                    b.ToTable("SystemSettings");
-
-                    b.HasData(
-                        new
-                        {
-                            Key = "IsEvaluationEnabled",
-                            Value = "true"
-                        });
                 });
 
             modelBuilder.Entity("StudentService.Models.TeacherEvaluation", b =>
