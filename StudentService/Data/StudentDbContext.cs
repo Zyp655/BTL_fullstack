@@ -136,7 +136,8 @@ public class StudentDbContext : DbContext
 
         // Seed default system settings
         modelBuilder.Entity<SystemSetting>().HasData(
-            new SystemSetting { Key = "IsEvaluationEnabled", Value = "true" }
+            new SystemSetting { Key = "IsEvaluationEnabled", Value = "true" },
+            new SystemSetting { Key = "EnabledEvaluationClassIds", Value = "1,2,3,4,5,6,7,8,9,10" }
         );
 
         // Seed students (matching UserIds from PaymentService)
@@ -1500,6 +1501,108 @@ new Student
             new ExamResult { ResultId = 3, EnrollmentId = 2, ExamType = "KiemTra", Score = 9.0m, GradedByTeacherId = 2, ExamDate = new DateTime(2026, 3, 15, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 3, 15, 0, 0, 0, DateTimeKind.Utc) },
             new ExamResult { ResultId = 4, EnrollmentId = 3, ExamType = "KiemTra", Score = 6.5m, Note = "Cần cải thiện phần Listening", GradedByTeacherId = 2, ExamDate = new DateTime(2026, 4, 20, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 4, 20, 0, 0, 0, DateTimeKind.Utc) },
             new ExamResult { ResultId = 5, EnrollmentId = 4, ExamType = "KiemTra", Score = 9.5m, Note = "Xuất sắc", GradedByTeacherId = 2, ExamDate = new DateTime(2026, 5, 10, 0, 0, 0, DateTimeKind.Utc), CreatedAt = new DateTime(2026, 5, 10, 0, 0, 0, DateTimeKind.Utc) }
+        );
+
+        // Seed teacher evaluations
+        modelBuilder.Entity<TeacherEvaluation>().HasData(
+            new TeacherEvaluation
+            {
+                Id = 1,
+                StudentId = 1,
+                ClassId = 1,
+                TeacherId = 2,
+                TeachingQualityRating = 5,
+                SupportRating = 5,
+                CurriculumRating = 4,
+                PunctualityRating = 5,
+                Rating = 4.75,
+                Comment = "Thầy dạy rất hay và nhiệt tình, tài liệu đầy đủ.",
+                CreatedAt = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new TeacherEvaluation
+            {
+                Id = 2,
+                StudentId = 2,
+                ClassId = 1,
+                TeacherId = 2,
+                TeachingQualityRating = 4,
+                SupportRating = 5,
+                CurriculumRating = 5,
+                PunctualityRating = 4,
+                Rating = 4.50,
+                Comment = "Thầy hỗ trợ nhiệt tình sau giờ học.",
+                CreatedAt = new DateTime(2026, 6, 2, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new TeacherEvaluation
+            {
+                Id = 3,
+                StudentId = 3,
+                ClassId = 1,
+                TeacherId = 2,
+                TeachingQualityRating = 5,
+                SupportRating = 4,
+                CurriculumRating = 4,
+                PunctualityRating = 5,
+                Rating = 4.50,
+                Comment = "Tác phong thầy rất chuyên nghiệp, đúng giờ.",
+                CreatedAt = new DateTime(2026, 6, 3, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new TeacherEvaluation
+            {
+                Id = 4,
+                StudentId = 6,
+                ClassId = 2,
+                TeacherId = 3,
+                TeachingQualityRating = 4,
+                SupportRating = 4,
+                CurriculumRating = 4,
+                PunctualityRating = 4,
+                Rating = 4.00,
+                Comment = "Cô Bình dạy dễ hiểu, chuẩn bị bài kỹ lưỡng.",
+                CreatedAt = new DateTime(2026, 6, 4, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new TeacherEvaluation
+            {
+                Id = 5,
+                StudentId = 7,
+                ClassId = 2,
+                TeacherId = 3,
+                TeachingQualityRating = 5,
+                SupportRating = 5,
+                CurriculumRating = 5,
+                PunctualityRating = 5,
+                Rating = 5.00,
+                Comment = "Lớp học rất sôi nổi, cô hỗ trợ nhiệt tình.",
+                CreatedAt = new DateTime(2026, 6, 5, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new TeacherEvaluation
+            {
+                Id = 6,
+                StudentId = 1,
+                ClassId = 3,
+                TeacherId = 2,
+                TeachingQualityRating = 5,
+                SupportRating = 5,
+                CurriculumRating = 5,
+                PunctualityRating = 5,
+                Rating = 5.00,
+                Comment = "Khóa học TOEIC rất chất lượng, thầy An truyền thụ nhiều mẹo thi thực tế.",
+                CreatedAt = new DateTime(2026, 6, 6, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new TeacherEvaluation
+            {
+                Id = 7,
+                StudentId = 5,
+                ClassId = 3,
+                TeacherId = 2,
+                TeachingQualityRating = 4,
+                SupportRating = 4,
+                CurriculumRating = 4,
+                PunctualityRating = 5,
+                Rating = 4.25,
+                Comment = "Lịch học đúng giờ, tài liệu phong phú.",
+                CreatedAt = new DateTime(2026, 6, 7, 0, 0, 0, DateTimeKind.Utc)
+            }
         );
     }
 }
