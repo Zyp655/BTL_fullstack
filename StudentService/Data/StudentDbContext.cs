@@ -1663,7 +1663,13 @@ new Student
             new CourseEvaluation { Id = 9, StudentId = 2, CourseId = 3, Rating = 5, Comment = "Thực hành nhiều bài tập trực quan.", CreatedAt = new DateTime(2026, 6, 9, 0, 0, 0, DateTimeKind.Utc) },
             new CourseEvaluation { Id = 10, StudentId = 4, CourseId = 3, Rating = 3, Comment = "Nội dung hơi nhanh ở những buổi cuối.", CreatedAt = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc) },
             new CourseEvaluation { Id = 11, StudentId = 3, CourseId = 8, Rating = 5, Comment = "Fullstack React & Nodejs dạy rất thực tế, làm được project ngay.", CreatedAt = new DateTime(2026, 6, 11, 0, 0, 0, DateTimeKind.Utc) },
-            new CourseEvaluation { Id = 12, StudentId = 5, CourseId = 8, Rating = 4, Comment = "Kiến thức nhiều và nặng, cần tự học nhiều.", CreatedAt = new DateTime(2026, 6, 12, 0, 0, 0, DateTimeKind.Utc) }
+            new CourseEvaluation { Id = 12, StudentId = 5, CourseId = 8, Rating = 4, Comment = "Kiến thức nhiều và nặng, cần tự học nhiều.", CreatedAt = new DateTime(2026, 6, 12, 0, 0, 0, DateTimeKind.Utc) },
+            new CourseEvaluation { Id = 13, StudentId = 1, CourseId = 4, Rating = 5, Comment = "Khóa học rất thiết thực, học xong tự tin thuyết trình hẳn.", CreatedAt = new DateTime(2026, 6, 12, 0, 0, 0, DateTimeKind.Utc) },
+            new CourseEvaluation { Id = 14, StudentId = 2, CourseId = 4, Rating = 4, Comment = "Nhiều bài tập thực hành bổ ích.", CreatedAt = new DateTime(2026, 6, 13, 0, 0, 0, DateTimeKind.Utc) },
+            new CourseEvaluation { Id = 15, StudentId = 3, CourseId = 5, Rating = 5, Comment = "Giáo trình cực kỳ sát đề thi, thầy cô chấm chữa bài viết rất chi tiết.", CreatedAt = new DateTime(2026, 6, 14, 0, 0, 0, DateTimeKind.Utc) },
+            new CourseEvaluation { Id = 16, StudentId = 4, CourseId = 11, Rating = 5, Comment = "Dạy từ cơ bản đến nâng cao Vue 3, bài tập lớn rất hay.", CreatedAt = new DateTime(2026, 6, 14, 0, 0, 0, DateTimeKind.Utc) },
+            new CourseEvaluation { Id = 17, StudentId = 7, CourseId = 14, Rating = 5, Comment = "Khóa học C# nâng cao rất hay, cô Hoa giảng dạy cực kỳ chi tiết và dễ hiểu.", CreatedAt = new DateTime(2026, 6, 15, 0, 0, 0, DateTimeKind.Utc) },
+            new CourseEvaluation { Id = 18, StudentId = 8, CourseId = 14, Rating = 4, Comment = "Kiến thức nâng cao rất bổ ích cho việc tối ưu hóa code backend.", CreatedAt = new DateTime(2026, 6, 16, 0, 0, 0, DateTimeKind.Utc) }
         );
     }
 }

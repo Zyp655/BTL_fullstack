@@ -97,12 +97,14 @@ public class CourseEvaluationsController : ControllerBase
         _context.CourseEvaluations.Add(eval);
         await _context.SaveChangesAsync();
 
+        var courseInfo = await _courseServiceClient.GetCourseInfo(eval.CourseId);
         var result = new CourseEvaluationDto
         {
             Id = eval.Id,
             StudentId = eval.StudentId,
             StudentName = studentProfile.FullName,
             CourseId = eval.CourseId,
+            CourseName = courseInfo?.CourseName ?? "Môn học #" + eval.CourseId,
             Rating = eval.Rating,
             Comment = eval.Comment,
             CreatedAt = DateTime.SpecifyKind(eval.CreatedAt, DateTimeKind.Utc)
@@ -123,6 +125,9 @@ public class CourseEvaluationsController : ControllerBase
             .Where(e => e.CourseId == courseId)
             .OrderByDescending(e => e.CreatedAt)
             .ToListAsync();
+
+        var courseInfo = await _courseServiceClient.GetCourseInfo(courseId);
+        var courseName = courseInfo?.CourseName ?? "Môn học #" + courseId;
 
         var summary = new CourseEvaluationSummaryDto
         {
@@ -145,6 +150,7 @@ public class CourseEvaluationsController : ControllerBase
                 StudentId = eval.StudentId,
                 StudentName = eval.Student?.FullName ?? "Học viên ẩn danh",
                 CourseId = eval.CourseId,
+                CourseName = courseName,
                 Rating = eval.Rating,
                 Comment = eval.Comment,
                 CreatedAt = DateTime.SpecifyKind(eval.CreatedAt, DateTimeKind.Utc)
@@ -171,16 +177,68 @@ public class CourseEvaluationsController : ControllerBase
             .OrderByDescending(e => e.CreatedAt)
             .ToListAsync();
 
-        var result = list.Select(eval => new CourseEvaluationDto
+        var result = new List<CourseEvaluationDto>();
+        var courseCache = new Dictionary<int, string>();
+
+        foreach (var eval in list)
         {
-            Id = eval.Id,
-            StudentId = eval.StudentId,
-            StudentName = student.FullName,
-            CourseId = eval.CourseId,
-            Rating = eval.Rating,
-            Comment = eval.Comment,
-            CreatedAt = DateTime.SpecifyKind(eval.CreatedAt, DateTimeKind.Utc)
-        }).ToList();
+            if (!courseCache.ContainsKey(eval.CourseId))
+            {
+                var courseInfo = await _courseServiceClient.GetCourseInfo(eval.CourseId);
+                courseCache[eval.CourseId] = courseInfo?.CourseName ?? "Môn học #" + eval.CourseId;
+            }
+
+            result.Add(new CourseEvaluationDto
+            {
+                Id = eval.Id,
+                StudentId = eval.StudentId,
+                StudentName = student.FullName,
+                CourseId = eval.CourseId,
+                CourseName = courseCache[eval.CourseId],
+                Rating = eval.Rating,
+                Comment = eval.Comment,
+                CreatedAt = DateTime.SpecifyKind(eval.CreatedAt, DateTimeKind.Utc)
+            });
+        }
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Admin views all course evaluations in the system
+    /// </summary>
+    [Authorize(Roles = "Admin")]
+    [HttpGet("all")]
+    public async Task<ActionResult<List<CourseEvaluationDto>>> GetAllEvaluations()
+    {
+        var list = await _context.CourseEvaluations
+            .Include(e => e.Student)
+            .OrderByDescending(e => e.CreatedAt)
+            .ToListAsync();
+
+        var result = new List<CourseEvaluationDto>();
+        var courseCache = new Dictionary<int, string>();
+
+        foreach (var eval in list)
+        {
+            if (!courseCache.ContainsKey(eval.CourseId))
+            {
+                var courseInfo = await _courseServiceClient.GetCourseInfo(eval.CourseId);
+                courseCache[eval.CourseId] = courseInfo?.CourseName ?? "Môn học #" + eval.CourseId;
+            }
+
+            result.Add(new CourseEvaluationDto
+            {
+                Id = eval.Id,
+                StudentId = eval.StudentId,
+                StudentName = eval.Student?.FullName ?? "Học viên ẩn danh",
+                CourseId = eval.CourseId,
+                CourseName = courseCache[eval.CourseId],
+                Rating = eval.Rating,
+                Comment = eval.Comment,
+                CreatedAt = DateTime.SpecifyKind(eval.CreatedAt, DateTimeKind.Utc)
+            });
+        }
 
         return Ok(result);
     }
