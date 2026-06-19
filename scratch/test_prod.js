@@ -1,9 +1,9 @@
 const https = require('https');
 
-function post(url, data) {
+function post(url, data, token) {
   return new Promise((resolve, reject) => {
     const parsedUrl = new URL(url);
-    const postData = JSON.stringify(data);
+    const postData = data ? JSON.stringify(data) : '';
     const options = {
       hostname: parsedUrl.hostname,
       port: parsedUrl.port || 443,
@@ -14,6 +14,9 @@ function post(url, data) {
         'Content-Length': Buffer.byteLength(postData)
       }
     };
+    if (token) {
+      options.headers['Authorization'] = `Bearer ${token}`;
+    }
 
     const req = https.request(options, (res) => {
       let body = '';
@@ -105,10 +108,15 @@ async function test() {
       console.error("Failed to decode token payload:", err);
     }
 
-    console.log("\nFetching course evaluations for Course 14...");
-    const getCourseRes = await get(`${baseUrl}/api/v1/course-evaluations/course/14`);
-    console.log("Response status:", getCourseRes.statusCode);
-    console.log("Response data:", getCourseRes.data);
+    console.log("\nFetching students...");
+    const studentRes = await get(`${baseUrl}/api/v1/Students?pageSize=100`, token);
+    console.log("Response status (students):", studentRes.statusCode);
+    if (studentRes.data && studentRes.data.items) {
+      console.log("Total students:", studentRes.data.totalCount);
+      console.log("Student IDs in production:", studentRes.data.items.map(s => s.studentId || s.id));
+    } else {
+      console.log("Response data (students):", JSON.stringify(studentRes.data, null, 2));
+    }
 
   } catch (e) {
     console.error("Error running test:", e);
