@@ -1479,7 +1479,7 @@ new Student
         {
             int classId = 100 + i;
             int teacherId = teachers[i % teachers.Length].Id;
-            var months = new[] { 3, 6 };
+            var months = new[] { 3, 5, 6 };
             var days = new[] { 4, 11, 18, 25 };
 
             for (int m = 0; m < months.Length; m++)
@@ -1492,6 +1492,38 @@ new Student
                     for (int s = 0; s < 10; s++)
                     {
                         int enrollmentId = 10000 + (i - 1) * 10 + s;
+                        attendances.Add(new Attendance
+                        {
+                            AttendanceId = attendanceIdCounter++,
+                            EnrollmentId = enrollmentId,
+                            SessionDate = sessionDate,
+                            Status = "CoMat",
+                            MarkedByTeacherId = teacherId,
+                            CreatedAt = sessionDate
+                        });
+                    }
+                }
+            }
+        }
+
+        // Programmatic attendance for Lê Thị Hoa (TeacherId = 5) on classId 201 to 220 in May 2026
+        for (int i = 1; i <= 20; i++)
+        {
+            int classId = 200 + i;
+            int teacherId = 5;
+            var months = new[] { 5 };
+            var days = new[] { 5, 12, 19, 26 };
+
+            for (int m = 0; m < months.Length; m++)
+            {
+                int month = months[m];
+                for (int d = 0; d < days.Length; d++)
+                {
+                    int day = days[d];
+                    var sessionDate = new DateTime(2026, month, day, 0, 0, 0, DateTimeKind.Utc);
+                    for (int s = 0; s < 15; s++)
+                    {
+                        int enrollmentId = 100 + (i - 1) * 15 + s;
                         attendances.Add(new Attendance
                         {
                             AttendanceId = attendanceIdCounter++,
