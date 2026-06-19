@@ -46,7 +46,14 @@ public class GlobalExceptionHandler : IExceptionHandler
             default:
                 problemDetails.Status = (int)HttpStatusCode.InternalServerError;
                 problemDetails.Title = "Internal Server Error";
-                problemDetails.Detail = "Có lỗi xảy ra từ hệ thống. Vui lòng liên hệ quản trị viên.";
+                if (httpContext.User?.Identity?.IsAuthenticated == true && httpContext.User.IsInRole("Admin"))
+                {
+                    problemDetails.Detail = $"{exception.Message}\n{exception.StackTrace}";
+                }
+                else
+                {
+                    problemDetails.Detail = "Có lỗi xảy ra từ hệ thống. Vui lòng liên hệ quản trị viên.";
+                }
                 break;
         }
 
