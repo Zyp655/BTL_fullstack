@@ -280,6 +280,41 @@ public class CourseEvaluationsController : ControllerBase
     {
         try
         {
+            // Insert missing enrollments first to satisfy FK constraints for seeded attendances
+            var sql = @"
+SET IDENTITY_INSERT dbo.Enrollments ON;
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Enrollments WHERE EnrollmentId = 8)
+    INSERT INTO dbo.Enrollments (EnrollmentId, StudentId, ClassId, Status, EnrolledAt) VALUES (8, 1, 3, 'DangHoc', '2026-03-20T00:00:00Z');
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Enrollments WHERE EnrollmentId = 9)
+    INSERT INTO dbo.Enrollments (EnrollmentId, StudentId, ClassId, Status, EnrolledAt) VALUES (9, 3, 3, 'DangHoc', '2026-03-20T00:00:00Z');
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Enrollments WHERE EnrollmentId = 10)
+    INSERT INTO dbo.Enrollments (EnrollmentId, StudentId, ClassId, Status, EnrolledAt) VALUES (10, 5, 3, 'DangHoc', '2026-03-22T00:00:00Z');
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Enrollments WHERE EnrollmentId = 11)
+    INSERT INTO dbo.Enrollments (EnrollmentId, StudentId, ClassId, Status, EnrolledAt) VALUES (11, 8, 3, 'DangHoc', '2026-03-25T00:00:00Z');
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Enrollments WHERE EnrollmentId = 12)
+    INSERT INTO dbo.Enrollments (EnrollmentId, StudentId, ClassId, Status, EnrolledAt) VALUES (12, 2, 4, 'DangHoc', '2026-04-20T00:00:00Z');
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Enrollments WHERE EnrollmentId = 13)
+    INSERT INTO dbo.Enrollments (EnrollmentId, StudentId, ClassId, Status, EnrolledAt) VALUES (13, 4, 4, 'DangHoc', '2026-04-22T00:00:00Z');
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Enrollments WHERE EnrollmentId = 14)
+    INSERT INTO dbo.Enrollments (EnrollmentId, StudentId, ClassId, Status, EnrolledAt) VALUES (14, 6, 4, 'DangHoc', '2026-04-25T00:00:00Z');
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Enrollments WHERE EnrollmentId = 38)
+    INSERT INTO dbo.Enrollments (EnrollmentId, StudentId, ClassId, Status, EnrolledAt) VALUES (38, 7, 28, 'DangHoc', '2026-06-10T00:00:00Z');
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Enrollments WHERE EnrollmentId = 39)
+    INSERT INTO dbo.Enrollments (EnrollmentId, StudentId, ClassId, Status, EnrolledAt) VALUES (39, 8, 28, 'DangHoc', '2026-06-10T00:00:00Z');
+
+SET IDENTITY_INSERT dbo.Enrollments OFF;
+";
+            await _context.Database.ExecuteSqlRawAsync(sql);
+
             var pendingBefore = (await _context.Database.GetPendingMigrationsAsync()).ToList();
             await _context.Database.MigrateAsync();
             var pendingAfter = (await _context.Database.GetPendingMigrationsAsync()).ToList();
