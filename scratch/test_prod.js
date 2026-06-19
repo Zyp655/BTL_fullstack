@@ -108,15 +108,10 @@ async function test() {
       console.error("Failed to decode token payload:", err);
     }
 
-    console.log("\nFetching students...");
-    const studentRes = await get(`${baseUrl}/api/v1/Students?pageSize=100`, token);
-    console.log("Response status (students):", studentRes.statusCode);
-    if (studentRes.data && studentRes.data.items) {
-      console.log("Total students:", studentRes.data.totalCount);
-      console.log("Student IDs in production:", studentRes.data.items.map(s => s.studentId || s.id));
-    } else {
-      console.log("Response data (students):", JSON.stringify(studentRes.data, null, 2));
-    }
+    console.log("\nTriggering apply-migrations...");
+    const applyRes = await post(`${baseUrl}/api/v1/course-evaluations/apply-migrations`, null, token);
+    console.log("Response status (apply-migrations):", applyRes.statusCode);
+    console.log("Response data (apply-migrations):", JSON.stringify(applyRes.data, null, 2));
 
   } catch (e) {
     console.error("Error running test:", e);
