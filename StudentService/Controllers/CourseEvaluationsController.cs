@@ -312,6 +312,17 @@ IF NOT EXISTS (SELECT 1 FROM dbo.Enrollments WHERE EnrollmentId = 39)
     INSERT INTO dbo.Enrollments (EnrollmentId, StudentId, ClassId, Status, EnrolledAt) VALUES (39, 8, 28, 'DangHoc', '2026-06-10T00:00:00Z');
 
 SET IDENTITY_INSERT dbo.Enrollments OFF;
+
+-- Clean up duplicate system settings and seeded evaluations to ensure migrations run smoothly
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[SystemSettings]') AND type in (N'U'))
+BEGIN
+    DELETE FROM dbo.SystemSettings WHERE [Key] = 'EnabledEvaluationClassIds';
+END
+
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[TeacherEvaluations]') AND type in (N'U'))
+BEGIN
+    DELETE FROM dbo.TeacherEvaluations WHERE Id BETWEEN 1 AND 7;
+END
 ";
             await _context.Database.ExecuteSqlRawAsync(sql);
 
