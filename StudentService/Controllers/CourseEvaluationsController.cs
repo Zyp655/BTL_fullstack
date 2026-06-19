@@ -242,4 +242,61 @@ public class CourseEvaluationsController : ControllerBase
 
         return Ok(result);
     }
+
+    /// <summary>
+    /// Diagnostic endpoint for EF Core migrations
+    /// </summary>
+    [Authorize(Roles = "Admin")]
+    [HttpGet("diagnostic-migrations")]
+    public async Task<IActionResult> GetDiagnosticMigrations()
+    {
+        try
+        {
+            var pending = (await _context.Database.GetPendingMigrationsAsync()).ToList();
+            var applied = (await _context.Database.GetAppliedMigrationsAsync()).ToList();
+            
+            return Ok(new {
+                pending = pending,
+                applied = applied,
+                message = "Diagnostics retrieved successfully"
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new {
+                message = "Error retrieving migrations status",
+                error = ex.Message,
+                stackTrace = ex.StackTrace
+            });
+        }
+    }
+
+    /// <summary>
+    /// Admin triggers migration run manually
+    /// </summary>
+    [Authorize(Roles = "Admin")]
+    [HttpPost("apply-migrations")]
+    public async Task<IActionResult> ApplyMigrationsManual()
+    {
+        try
+        {
+            var pendingBefore = (await _context.Database.GetPendingMigrationsAsync()).ToList();
+            await _context.Database.MigrateAsync();
+            var pendingAfter = (await _context.Database.GetPendingMigrationsAsync()).ToList();
+            
+            return Ok(new {
+                message = "Migrations run completed",
+                pendingBefore = pendingBefore,
+                pendingAfter = pendingAfter
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new {
+                message = "Error during manual migration run",
+                error = ex.Message,
+                stackTrace = ex.StackTrace
+            });
+        }
+    }
 }
