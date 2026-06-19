@@ -104,6 +104,50 @@ public class ClassroomsController : ControllerBase
     }
 
     /// <summary>
+    /// Tạo phòng học mới (Admin)
+    /// </summary>
+    [Authorize(Roles = "Admin")]
+    [HttpPost]
+    public async Task<ActionResult<ClassroomDto>> CreateClassroom(CreateClassroomDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.RoomNumber))
+            return BadRequest(new { message = "Số phòng không được để trống" });
+
+        var normalizedRoom = dto.RoomNumber.Trim();
+        if (normalizedRoom.StartsWith("P.", StringComparison.OrdinalIgnoreCase))
+        {
+            normalizedRoom = normalizedRoom.Substring(2);
+        }
+        else if (normalizedRoom.StartsWith("Phòng ", StringComparison.OrdinalIgnoreCase))
+        {
+            normalizedRoom = normalizedRoom.Substring(6);
+        }
+
+        var existing = await _context.Classrooms.FindAsync(normalizedRoom);
+        if (existing != null)
+            return BadRequest(new { message = $"Phòng học {normalizedRoom} đã tồn tại" });
+
+        var room = new Classroom
+        {
+            RoomNumber = normalizedRoom,
+            IsMaintenance = false,
+            Notes = dto.Notes
+        };
+
+        _context.Classrooms.Add(room);
+        await _context.SaveChangesAsync();
+
+        return Ok(new ClassroomDto
+        {
+            RoomNumber = room.RoomNumber,
+            IsMaintenance = room.IsMaintenance,
+            Notes = room.Notes,
+            Status = "Vacant",
+            AssignedClasses = new List<string>()
+        });
+    }
+
+    /// <summary>
     /// Cập nhật trạng thái bảo trì của phòng học (Admin)
     /// </summary>
     [Authorize(Roles = "Admin")]

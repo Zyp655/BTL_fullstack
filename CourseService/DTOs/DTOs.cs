@@ -199,3 +199,9 @@ public class UpdateClassroomMaintenanceDto
     public bool IsMaintenance { get; set; }
     public string? Notes { get; set; }
 }
+
+public class CreateClassroomDto
+{
+    public string RoomNumber { get; set; } = string.Empty;
+    public string? Notes { get; set; }
+}
