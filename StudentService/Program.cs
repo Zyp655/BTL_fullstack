@@ -31,6 +31,12 @@ builder.Services.AddHttpClient<ICourseServiceClient, CourseServiceClient>(client
 })
 .AddStandardResilienceHandler();
 
+// Register Gemini AI service
+builder.Services.AddHttpClient<IAiServiceClient, GeminiServiceClient>(client =>
+{
+    client.Timeout = TimeSpan.FromMinutes(3);
+});
+
 // Register Repositories
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();

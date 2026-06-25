@@ -18,6 +18,12 @@ public class StudentDbContext : DbContext
     public DbSet<EvaluationCriterion> EvaluationCriteria => Set<EvaluationCriterion>();
     public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
     public DbSet<CourseEvaluation> CourseEvaluations => Set<CourseEvaluation>();
+    public DbSet<Lesson> Lessons => Set<Lesson>();
+    public DbSet<Quiz> Quizzes => Set<Quiz>();
+    public DbSet<QuizQuestion> QuizQuestions => Set<QuizQuestion>();
+    public DbSet<QuizSubmission> QuizSubmissions => Set<QuizSubmission>();
+    public DbSet<QuizStudentQuestion> QuizStudentQuestions => Set<QuizStudentQuestion>();
+
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

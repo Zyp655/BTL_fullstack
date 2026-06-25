@@ -92,6 +92,7 @@ services:
       - RabbitMQ__Host=rabbitmq
       - RabbitMQ__Username=guest
       - RabbitMQ__Password=guest
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
     depends_on:
       student-sqlserver:
         condition: service_healthy

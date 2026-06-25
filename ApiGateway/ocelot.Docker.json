@@ -244,6 +244,34 @@
       "DownstreamHostAndPorts": [{ "Host": "course-service", "Port": 8080 }],
       "UpstreamPathTemplate": "/api/v1/classrooms",
       "UpstreamHttpMethod": [ "GET", "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/lessons/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "student-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/lessons/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/lessons",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "student-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/lessons",
+      "UpstreamHttpMethod": [ "GET", "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/quizzes/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "student-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/quizzes/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/quizzes",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "student-service", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/v1/quizzes",
+      "UpstreamHttpMethod": [ "GET", "POST" ]
     }
   ],
   "GlobalConfiguration": {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -34,10 +34,10 @@ namespace StudentService.Migrations
                     { 21, new DateTime(2026, 6, 24, 0, 0, 0, 0, DateTimeKind.Utc), 9, 2, null, new DateTime(2026, 6, 24, 0, 0, 0, 0, DateTimeKind.Utc), "CoMat" },
                     { 22, new DateTime(2026, 6, 24, 0, 0, 0, 0, DateTimeKind.Utc), 10, 2, null, new DateTime(2026, 6, 24, 0, 0, 0, 0, DateTimeKind.Utc), "DiTre" },
                     { 23, new DateTime(2026, 6, 24, 0, 0, 0, 0, DateTimeKind.Utc), 11, 2, null, new DateTime(2026, 6, 24, 0, 0, 0, 0, DateTimeKind.Utc), "Vang" },
-                    { 24, new DateTime(2026, 7, 20, 0, 0, 0, 0, DateTimeKind.Utc), 38, 5, null, new DateTime(2026, 7, 20, 0, 0, 0, 0, DateTimeKind.Utc), "CoMat" },
-                    { 25, new DateTime(2026, 7, 20, 0, 0, 0, 0, DateTimeKind.Utc), 39, 5, null, new DateTime(2026, 7, 20, 0, 0, 0, 0, DateTimeKind.Utc), "CoMat" },
-                    { 26, new DateTime(2026, 7, 27, 0, 0, 0, 0, DateTimeKind.Utc), 38, 5, null, new DateTime(2026, 7, 27, 0, 0, 0, 0, DateTimeKind.Utc), "CoMat" },
-                    { 27, new DateTime(2026, 7, 27, 0, 0, 0, 0, DateTimeKind.Utc), 39, 5, null, new DateTime(2026, 7, 27, 0, 0, 0, 0, DateTimeKind.Utc), "CoMat" },
+                    { 24, new DateTime(2026, 7, 20, 0, 0, 0, 0, DateTimeKind.Utc), 406, 5, null, new DateTime(2026, 7, 20, 0, 0, 0, 0, DateTimeKind.Utc), "CoMat" },
+                    { 25, new DateTime(2026, 7, 20, 0, 0, 0, 0, DateTimeKind.Utc), 407, 5, null, new DateTime(2026, 7, 20, 0, 0, 0, 0, DateTimeKind.Utc), "CoMat" },
+                    { 26, new DateTime(2026, 7, 27, 0, 0, 0, 0, DateTimeKind.Utc), 406, 5, null, new DateTime(2026, 7, 27, 0, 0, 0, 0, DateTimeKind.Utc), "CoMat" },
+                    { 27, new DateTime(2026, 7, 27, 0, 0, 0, 0, DateTimeKind.Utc), 407, 5, null, new DateTime(2026, 7, 27, 0, 0, 0, 0, DateTimeKind.Utc), "CoMat" },
                     { 28, new DateTime(2026, 6, 4, 0, 0, 0, 0, DateTimeKind.Utc), 12, 4, null, new DateTime(2026, 6, 4, 0, 0, 0, 0, DateTimeKind.Utc), "CoMat" },
                     { 29, new DateTime(2026, 6, 4, 0, 0, 0, 0, DateTimeKind.Utc), 13, 4, null, new DateTime(2026, 6, 4, 0, 0, 0, 0, DateTimeKind.Utc), "CoMat" },
                     { 30, new DateTime(2026, 6, 4, 0, 0, 0, 0, DateTimeKind.Utc), 14, 4, null, new DateTime(2026, 6, 4, 0, 0, 0, 0, DateTimeKind.Utc), "CoMat" },
