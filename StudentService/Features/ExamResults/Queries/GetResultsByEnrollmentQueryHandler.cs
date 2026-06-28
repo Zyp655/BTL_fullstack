@@ -16,6 +16,9 @@ public class GetResultsByEnrollmentQueryHandler : IRequestHandler<GetResultsByEn
     public async Task<List<ExamResultDto>> Handle(GetResultsByEnrollmentQuery request, CancellationToken cancellationToken)
     {
         var results = await _resultRepository.GetResultsByEnrollmentAsync(request.EnrollmentId);
-        return results.Select(ExamResultMapper.MapToDto).ToList();
+        // Filter out per-quiz detail records (Quiz_xxx), only show aggregated KiemTra result
+        return results
+            .Where(r => r.Note == null || !r.Note.StartsWith("Quiz_"))
+            .Select(ExamResultMapper.MapToDto).ToList();
     }
 }

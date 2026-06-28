@@ -292,5 +292,177 @@ public class GeminiServiceClient : IAiServiceClient
 
         throw new HttpRequestException($"Tất cả các model Gemini đều bị lỗi. Lỗi cuối cùng: {lastError}");
     }
+
+    public async Task<CodingChallengeDto> GenerateCodingChallengeAsync(string topic, string language)
+    {
+        if (string.IsNullOrEmpty(_apiKey))
+        {
+            throw new System.InvalidOperationException("Chưa cấu hình Gemini API Key. Vui lòng thiết lập key trong appsettings.json hoặc biến môi trường GEMINI_API_KEY.");
+        }
+
+        var prompt = $"Hãy sinh một đề bài lập trình (coding challenge) về chủ đề '{topic}' bằng ngôn ngữ '{language}' bằng tiếng Việt.\n\n" +
+                     "Yêu cầu:\n" +
+                     "1. Tiêu đề (title) ngắn gọn, mô tả đúng bài toán.\n" +
+                     "2. Mô tả (description) dạng Markdown: Mô tả bài toán chi tiết, có ví dụ đầu vào/đầu ra (Input/Output), ràng buộc (Constraints).\n" +
+                     "3. Mã khởi đầu (starterCode): Một hàm trống hoặc khung code cơ bản để học viên hoàn thiện bằng ngôn ngữ đã chọn.\n" +
+                     "4. Giải thích kỳ vọng (expectedExplanation): Giải thích thuật toán giải quyết tối ưu.\n\n" +
+                     "CHỈ TRẢ VỀ JSON THUẦN TÚY dạng:\n" +
+                     "{\n" +
+                     "  \"title\": \"Tên đề bài\",\n" +
+                     "  \"description\": \"Mô tả chi tiết bằng Markdown\",\n" +
+                     "  \"starterCode\": \"function solve() {\\n  // code ở đây\\n}\",\n" +
+                     "  \"expectedExplanation\": \"Thuật toán tối ưu là...\"\n" +
+                     "}\n\n" +
+                     "KHÔNG CÓ MARKDOWN CODE FENCES (```json), KHÔNG CÓ LỜI DẪN.";
+
+        var requestBody = new
+        {
+            contents = new[] { new { parts = new[] { new { text = prompt } } } }
+        };
+
+        var json = JsonSerializer.Serialize(requestBody);
+        string? lastError = null;
+
+        foreach (var model in FallbackModels)
+        {
+            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={_apiKey}";
+            _logger.LogInformation("Thử model {Model} để tạo Coding Challenge.", model);
+
+            try
+            {
+                var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync(url, httpContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseString = await response.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(responseString);
+                    var textResult = doc.RootElement
+                        .GetProperty("candidates")[0]
+                        .GetProperty("content")
+                        .GetProperty("parts")[0]
+                        .GetProperty("text")
+                        .GetString();
+
+                    if (!string.IsNullOrEmpty(textResult))
+                    {
+                        textResult = textResult.Trim();
+                        if (textResult.StartsWith("```json"))
+                            textResult = textResult.Substring(7);
+                        else if (textResult.StartsWith("```"))
+                            textResult = textResult.Substring(3);
+                        if (textResult.EndsWith("```"))
+                            textResult = textResult.Substring(0, textResult.Length - 3);
+                        textResult = textResult.Trim();
+
+                        var challenge = JsonSerializer.Deserialize<CodingChallengeDto>(textResult, new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        });
+                        return challenge ?? new CodingChallengeDto();
+                    }
+                }
+                else
+                {
+                    lastError = await response.Content.ReadAsStringAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Lỗi khi dùng model {Model} tạo Coding Challenge", model);
+                lastError = ex.Message;
+            }
+        }
+
+        throw new HttpRequestException($"Tất cả các model Gemini đều bị lỗi tạo đề bài. Lỗi cuối cùng: {lastError}");
+    }
+
+    public async Task<CodingGradeDto> GradeCodingChallengeAsync(string problemDescription, string solutionCode, string language)
+    {
+        if (string.IsNullOrEmpty(_apiKey))
+        {
+            throw new System.InvalidOperationException("Chưa cấu hình Gemini API Key. Vui lòng thiết lập key trong appsettings.json hoặc biến môi trường GEMINI_API_KEY.");
+        }
+
+        var prompt = $"Hãy chấm điểm bài tập lập trình của học viên bằng tiếng Việt.\n\n" +
+                     $"ĐỀ BÀI:\n{problemDescription}\n\n" +
+                     $"NGÔN NGỮ: {language}\n\n" +
+                     $"MÃ NGUỒN CỦA HỌC VIÊN:\n{solutionCode}\n\n" +
+                     "Yêu cầu đánh giá:\n" +
+                     "1. Kiểm tra tính đúng đắn logic của mã nguồn.\n" +
+                     "2. Đánh giá độ phức tạp thuật toán (Time & Space Complexity) xem có tối ưu chưa.\n" +
+                     "3. Chỉ ra lỗi cú pháp hoặc logic nếu có.\n" +
+                     "4. Cho điểm số (score) trên thang điểm từ 0.0 đến 10.0.\n" +
+                     "5. Xác định bài làm đúng (isCorrect = true nếu giải đúng và tối ưu, false nếu sai hoặc có lỗi nặng).\n" +
+                     "6. Viết phản hồi (feedback) dạng Markdown chi tiết. Tuyệt đối KHÔNG viết các từ ngữ như 'AI chấm', 'AI đánh giá', 'Hệ thống tự động chấm'. Hãy viết dưới tiêu đề dạng 'Gợi ý bài làm & Hướng dẫn tối ưu'. Trong đó, hãy gợi ý rõ ràng và chi tiết cách thức chỉnh sửa, cải tiến mã nguồn để học viên có thể nâng cấp bài làm nhằm đạt được điểm số cao hơn điểm hiện tại.\n\n" +
+                     "CHỈ TRẢ VỀ JSON THUẦN TÚY dạng:\n" +
+                     "{\n" +
+                     "  \"score\": 8.5,\n" +
+                     "  \"isCorrect\": true,\n" +
+                     "  \"feedback\": \"Gợi ý bài làm & Hướng dẫn tối ưu bằng Markdown\"\n" +
+                     "}\n\n" +
+                     "KHÔNG CÓ MARKDOWN CODE FENCES (```json), KHÔNG CÓ LỜI DẪN.";
+
+        var requestBody = new
+        {
+            contents = new[] { new { parts = new[] { new { text = prompt } } } }
+        };
+
+        var json = JsonSerializer.Serialize(requestBody);
+        string? lastError = null;
+
+        foreach (var model in FallbackModels)
+        {
+            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={_apiKey}";
+            _logger.LogInformation("Thử model {Model} để chấm bài Coding Challenge.", model);
+
+            try
+            {
+                var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync(url, httpContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseString = await response.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(responseString);
+                    var textResult = doc.RootElement
+                        .GetProperty("candidates")[0]
+                        .GetProperty("content")
+                        .GetProperty("parts")[0]
+                        .GetProperty("text")
+                        .GetString();
+
+                    if (!string.IsNullOrEmpty(textResult))
+                    {
+                        textResult = textResult.Trim();
+                        if (textResult.StartsWith("```json"))
+                            textResult = textResult.Substring(7);
+                        else if (textResult.StartsWith("```"))
+                            textResult = textResult.Substring(3);
+                        if (textResult.EndsWith("```"))
+                            textResult = textResult.Substring(0, textResult.Length - 3);
+                        textResult = textResult.Trim();
+
+                        var grade = JsonSerializer.Deserialize<CodingGradeDto>(textResult, new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        });
+                        return grade ?? new CodingGradeDto();
+                    }
+                }
+                else
+                {
+                    lastError = await response.Content.ReadAsStringAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Lỗi khi dùng model {Model} chấm Coding Challenge", model);
+                lastError = ex.Message;
+            }
+        }
+
+        throw new HttpRequestException($"Tất cả các model Gemini đều bị lỗi chấm bài. Lỗi cuối cùng: {lastError}");
+    }
 }
 

@@ -43,7 +43,10 @@ public class GetClassResultSummaryQueryHandler : IRequestHandler<GetClassResultS
             {
                 StudentId = e.StudentId,
                 StudentName = e.Student?.FullName,
-                Results = e.ExamResults.Select(ExamResultMapper.MapToDto).OrderBy(r => r.ExamDate).ToList(),
+                // Filter out per-quiz detail records (Quiz_xxx), only show aggregated KiemTra result
+                Results = e.ExamResults
+                    .Where(r => r.Note == null || !r.Note.StartsWith("Quiz_"))
+                    .Select(ExamResultMapper.MapToDto).OrderBy(r => r.ExamDate).ToList(),
                 AttendanceScore = attendanceScore,
                 AverageScore = averageScore
             };

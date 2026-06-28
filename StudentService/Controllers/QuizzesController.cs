@@ -26,6 +26,12 @@ public class QuizzesController : ControllerBase
     {
         _context = context;
         _courseServiceClient = courseServiceClient;
+        try
+        {
+            _context.Database.ExecuteSqlRaw("IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Quizzes') AND name = 'MaxAttempts') ALTER TABLE Quizzes ADD MaxAttempts INT NOT NULL DEFAULT 1;");
+            _context.Database.ExecuteSqlRaw("ALTER TABLE QuizSubmissions ALTER COLUMN TeacherNote NVARCHAR(MAX);");
+        }
+        catch { }
     }
 
     [HttpGet("class/{classId}")]
@@ -61,12 +67,19 @@ public class QuizzesController : ControllerBase
 
         foreach (var quiz in quizzes)
         {
-            QuizSubmission? submission = null;
+            var studentSubmissions = new List<QuizSubmission>();
             if (role == "HocVien" && currentStudentId > 0)
             {
-                submission = await _context.QuizSubmissions
-                    .FirstOrDefaultAsync(s => s.QuizId == quiz.QuizId && s.StudentId == currentStudentId);
+                studentSubmissions = await _context.QuizSubmissions
+                    .Where(s => s.QuizId == quiz.QuizId && s.StudentId == currentStudentId)
+                    .OrderByDescending(s => s.SubmittedAt)
+                    .ToListAsync();
             }
+
+            var bestSubmission = studentSubmissions
+                .OrderByDescending(s => s.Score ?? 0)
+                .ThenByDescending(s => s.SubmittedAt)
+                .FirstOrDefault();
 
             quizDtos.Add(new
             {
@@ -75,13 +88,15 @@ public class QuizzesController : ControllerBase
                 quiz.Title,
                 quiz.DurationMinutes,
                 quiz.QuizType,
+                quiz.MaxAttempts,
                 quiz.LessonDate,
                 quiz.IsActive,
                 quiz.CreatedAt,
-                HasSubmitted = submission != null,
-                SubmissionScore = submission?.Score,
-                IsGraded = submission?.IsGraded ?? false,
-                TeacherNote = submission?.TeacherNote
+                AttemptsCount = studentSubmissions.Count,
+                HasSubmitted = studentSubmissions.Count > 0,
+                SubmissionScore = bestSubmission?.Score,
+                IsGraded = bestSubmission?.IsGraded ?? false,
+                TeacherNote = bestSubmission?.TeacherNote
             });
         }
 
@@ -115,6 +130,12 @@ public class QuizzesController : ControllerBase
             var enrolled = await _context.Enrollments.AnyAsync(e => e.StudentId == student.StudentId && e.ClassId == quiz.ClassId);
             if (!enrolled)
                 return Forbid();
+
+            var attempts = await _context.QuizSubmissions.CountAsync(s => s.QuizId == id && s.StudentId == student.StudentId);
+            if (attempts >= quiz.MaxAttempts)
+            {
+                return BadRequest(new { message = $"Bạn đã đạt giới hạn tối đa số lần làm bài ({quiz.MaxAttempts} lần)." });
+            }
         }
 
         // Return questions without correct answers for students
@@ -134,6 +155,7 @@ public class QuizzesController : ControllerBase
             quiz.Title,
             quiz.DurationMinutes,
             quiz.QuizType,
+            quiz.MaxAttempts,
             quiz.LessonDate,
             quiz.IsActive,
             quiz.CreatedAt,
@@ -161,6 +183,7 @@ public class QuizzesController : ControllerBase
             Title = dto.Title,
             DurationMinutes = dto.DurationMinutes,
             QuizType = dto.QuizType,
+            MaxAttempts = dto.MaxAttempts > 0 ? dto.MaxAttempts : 1,
             LessonDate = dto.LessonDate,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
@@ -234,15 +257,16 @@ public class QuizzesController : ControllerBase
         if (enrollment == null)
             return Forbid();
 
-        // Check if already submitted
-        var existingSubmission = await _context.QuizSubmissions
-            .AnyAsync(s => s.QuizId == id && s.StudentId == student.StudentId);
-
-        if (existingSubmission)
-            return BadRequest(new { message = "Bạn đã thực hiện bài kiểm tra này rồi." });
+        // Check if already submitted maximum attempts
+        var attemptsCount = await _context.QuizSubmissions
+            .CountAsync(s => s.QuizId == id && s.StudentId == student.StudentId);
+ 
+        if (attemptsCount >= quiz.MaxAttempts)
+            return BadRequest(new { message = $"Bạn đã đạt giới hạn tối đa số lần làm bài ({quiz.MaxAttempts} lần)." });
 
         decimal? score = null;
         bool isGraded = false;
+        string? feedback = null;
 
         if (quiz.QuizType == "TracNghiem")
         {
@@ -264,6 +288,32 @@ public class QuizzesController : ControllerBase
             score = total > 0 ? Math.Round(((decimal)correctCount / total) * 10, 2) : 0;
             isGraded = true;
         }
+        else if (quiz.QuizType == "LapTrinh")
+        {
+            var singleQuestion = quiz.Questions.FirstOrDefault();
+            if (singleQuestion != null)
+            {
+                dto.Answers.TryGetValue(singleQuestion.QuestionId.ToString(), out string? solutionCode);
+                solutionCode ??= string.Empty;
+                var language = singleQuestion.CorrectAnswer ?? "JavaScript";
+                var problemDesc = singleQuestion.QuestionText;
+
+                var aiClient = HttpContext.RequestServices.GetRequiredService<IAiServiceClient>();
+                try
+                {
+                    var gradeResult = await aiClient.GradeCodingChallengeAsync(problemDesc, solutionCode, language);
+                    score = gradeResult.Score;
+                    isGraded = true;
+                    feedback = gradeResult.Feedback;
+                }
+                catch (Exception ex)
+                {
+                    score = 0;
+                    isGraded = true;
+                    feedback = $"Lỗi chấm bài tự động bằng AI: {ex.Message}";
+                }
+            }
+        }
 
         var submission = new QuizSubmission
         {
@@ -273,27 +323,14 @@ public class QuizzesController : ControllerBase
             AnswersJson = JsonSerializer.Serialize(dto.Answers),
             Score = score,
             IsGraded = isGraded,
+            TeacherNote = feedback,
             SubmittedAt = DateTime.UtcNow
         };
 
         _context.QuizSubmissions.Add(submission);
 
-        // Auto create ExamResult for the student if graded
-        if (isGraded && score.HasValue)
-        {
-            var classInfo = await _courseServiceClient.GetClassInfo(quiz.ClassId);
-            var result = new ExamResult
-            {
-                EnrollmentId = enrollment.EnrollmentId,
-                ExamType = "KiemTra",
-                Score = score.Value,
-                Note = $"Bài kiểm tra trực tuyến: {quiz.Title}",
-                GradedByTeacherId = classInfo?.TeacherId,
-                ExamDate = DateTime.UtcNow,
-                CreatedAt = DateTime.UtcNow
-            };
-            _context.ExamResults.Add(result);
-        }
+        // NOTE: ExamResult is NOT auto-created here.
+        // The teacher must explicitly save the official score from the grade management UI.
 
         await _context.SaveChangesAsync();
 
@@ -383,37 +420,127 @@ public class QuizzesController : ControllerBase
         submission.TeacherNote = dto.TeacherNote;
         submission.IsGraded = true;
 
-        // Check if there is an existing ExamResult for this submission
-        // We look for a KiemTra result with matching enrollment and note referencing this quiz title
-        var resultNoteKeyword = $"Bài kiểm tra trực tuyến: {submission.Quiz!.Title}";
-        var existingResult = await _context.ExamResults
-            .FirstOrDefaultAsync(r => r.EnrollmentId == submission.EnrollmentId && r.ExamType == "KiemTra" && r.Note == resultNoteKeyword);
+        // NOTE: ExamResult is NOT created/updated here.
+        // The teacher must use "Lưu điểm chính thức" from the submissions management UI.
 
-        if (existingResult != null)
+        await _context.SaveChangesAsync();
+ 
+        return Ok(new { message = "Chấm điểm thành công" });
+    }
+
+    [HttpPost("{id}/save-official-score")]
+    [Authorize(Roles = "Admin,GiaoVien")]
+    public async Task<IActionResult> SaveOfficialScore(int id, [FromBody] SaveOfficialScoreDto dto)
+    {
+        var quiz = await _context.Quizzes.FindAsync(id);
+        if (quiz == null)
+            return NotFound(new { message = "Không tìm thấy đề thi" });
+
+        var student = await _context.Students.FirstOrDefaultAsync(s => s.StudentId == dto.StudentId);
+        if (student == null)
+            return BadRequest(new { message = "Không tìm thấy học viên" });
+
+        var enrollment = await _context.Enrollments
+            .FirstOrDefaultAsync(e => e.StudentId == student.StudentId && e.ClassId == quiz.ClassId);
+
+        if (enrollment == null)
+            return BadRequest(new { message = "Học viên không tham gia lớp học này" });
+
+        var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        var userIdStr = User.FindFirst("userId")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        int? teacherId = null;
+        if (int.TryParse(userIdStr, out int parsedTeacherId)) teacherId = parsedTeacherId;
+
+        // Step 1: Save/update per-quiz score with unique note per quiz
+        var perQuizNote = $"Quiz_{quiz.QuizId}:{quiz.Title}";
+        var perQuizResult = await _context.ExamResults
+            .FirstOrDefaultAsync(r => r.EnrollmentId == enrollment.EnrollmentId && 
+                                     r.ExamType == "KiemTra" && 
+                                     r.Note != null && r.Note.StartsWith($"Quiz_{quiz.QuizId}:"));
+
+        if (perQuizResult == null)
         {
-            existingResult.Score = dto.Score;
-            existingResult.Note = resultNoteKeyword;
-            existingResult.GradedByTeacherId = currentTeacherId;
-            existingResult.ExamDate = DateTime.UtcNow;
-        }
-        else
-        {
-            var result = new ExamResult
+            perQuizResult = new ExamResult
             {
-                EnrollmentId = submission.EnrollmentId,
+                EnrollmentId = enrollment.EnrollmentId,
                 ExamType = "KiemTra",
                 Score = dto.Score,
-                Note = resultNoteKeyword,
-                GradedByTeacherId = currentTeacherId,
+                Note = perQuizNote,
+                GradedByTeacherId = teacherId,
                 ExamDate = DateTime.UtcNow,
                 CreatedAt = DateTime.UtcNow
             };
-            _context.ExamResults.Add(result);
+            _context.ExamResults.Add(perQuizResult);
+        }
+        else
+        {
+            perQuizResult.Score = dto.Score;
+            perQuizResult.Note = perQuizNote;
+            perQuizResult.GradedByTeacherId = teacherId;
+            perQuizResult.ExamDate = DateTime.UtcNow;
+            _context.Entry(perQuizResult).State = EntityState.Modified;
         }
 
         await _context.SaveChangesAsync();
 
-        return Ok(new { message = "Chấm điểm thành công" });
+        // Step 2: Recalculate average across all saved quiz scores for this enrollment
+        var allQuizResults = await _context.ExamResults
+            .Where(r => r.EnrollmentId == enrollment.EnrollmentId && 
+                       r.ExamType == "KiemTra" && 
+                       r.Note != null && r.Note.StartsWith("Quiz_"))
+            .ToListAsync();
+
+        if (allQuizResults.Any())
+        {
+            var averageScore = Math.Round(allQuizResults.Average(r => r.Score), 1);
+            var quizCount = allQuizResults.Count;
+            var avgNote = $"Trung bình {quizCount} bài kiểm tra";
+
+            // Find or create the aggregated KiemTra result (note does NOT start with "Quiz_")
+            var aggregatedResult = await _context.ExamResults
+                .FirstOrDefaultAsync(r => r.EnrollmentId == enrollment.EnrollmentId && 
+                                         r.ExamType == "KiemTra" && 
+                                         (r.Note == null || !r.Note.StartsWith("Quiz_")) &&
+                                         r.Note != null && r.Note.StartsWith("Trung bình"));
+
+            // Also clean up old-style "Bài kiểm tra trực tuyến:" results
+            var oldStyleResults = await _context.ExamResults
+                .Where(r => r.EnrollmentId == enrollment.EnrollmentId && 
+                           r.ExamType == "KiemTra" && 
+                           r.Note != null && r.Note.StartsWith("Bài kiểm tra trực tuyến:"))
+                .ToListAsync();
+            if (oldStyleResults.Any())
+            {
+                _context.ExamResults.RemoveRange(oldStyleResults);
+            }
+
+            if (aggregatedResult == null)
+            {
+                aggregatedResult = new ExamResult
+                {
+                    EnrollmentId = enrollment.EnrollmentId,
+                    ExamType = "KiemTra",
+                    Score = averageScore,
+                    Note = avgNote,
+                    GradedByTeacherId = teacherId,
+                    ExamDate = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.ExamResults.Add(aggregatedResult);
+            }
+            else
+            {
+                aggregatedResult.Score = averageScore;
+                aggregatedResult.Note = avgNote;
+                aggregatedResult.GradedByTeacherId = teacherId;
+                aggregatedResult.ExamDate = DateTime.UtcNow;
+                _context.Entry(aggregatedResult).State = EntityState.Modified;
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+        return Ok(new { message = "Lưu điểm chính thức thành công", score = dto.Score });
     }
 
     [HttpPost("generate-ai")]
@@ -447,8 +574,30 @@ public class QuizzesController : ControllerBase
         try
         {
             var aiClient = HttpContext.RequestServices.GetRequiredService<IAiServiceClient>();
-            var questions = await aiClient.GenerateQuestionsAsync(contentToUse, dto.QuizType, dto.QuestionCount);
-            return Ok(questions);
+            if (dto.QuizType == "LapTrinh")
+            {
+                var topic = string.IsNullOrWhiteSpace(dto.CustomTopic) ? "Basic Programming" : dto.CustomTopic;
+                var language = "JavaScript";
+                if (topic.Contains("Python", StringComparison.OrdinalIgnoreCase)) language = "Python";
+                else if (topic.Contains("C#", StringComparison.OrdinalIgnoreCase) || topic.Contains("Csharp", StringComparison.OrdinalIgnoreCase)) language = "C#";
+
+                var challenge = await aiClient.GenerateCodingChallengeAsync(topic, language);
+                var questions = new List<GeneratedQuestionDto>
+                {
+                    new GeneratedQuestionDto
+                    {
+                        QuestionText = $"# {challenge.Title}\n\n{challenge.Description}",
+                        Options = challenge.StarterCode,
+                        CorrectAnswer = language
+                    }
+                };
+                return Ok(questions);
+            }
+            else
+            {
+                var questions = await aiClient.GenerateQuestionsAsync(contentToUse, dto.QuizType, dto.QuestionCount);
+                return Ok(questions);
+            }
         }
         catch (Exception ex)
         {
@@ -509,6 +658,13 @@ public class QuizzesController : ControllerBase
             int correctCount = 0;
             int incorrectCount = 0;
             int attemptCount = 0;
+            var optionBreakdown = new Dictionary<string, int>
+            {
+                { "A", 0 },
+                { "B", 0 },
+                { "C", 0 },
+                { "D", 0 }
+            };
 
             foreach (var sub in submissions)
             {
@@ -518,6 +674,16 @@ public class QuizzesController : ControllerBase
                     if (answers != null && answers.TryGetValue(q.QuestionId.ToString(), out string? studentAns) && !string.IsNullOrWhiteSpace(studentAns))
                     {
                         attemptCount++;
+                        var cleanAns = studentAns.Trim().ToUpper();
+                        if (optionBreakdown.ContainsKey(cleanAns))
+                        {
+                            optionBreakdown[cleanAns]++;
+                        }
+                        else
+                        {
+                            optionBreakdown[cleanAns] = 1;
+                        }
+
                         if (quiz.QuizType == "TracNghiem")
                         {
                             if (q.CorrectAnswer != null && studentAns.Trim().Equals(q.CorrectAnswer.Trim(), StringComparison.OrdinalIgnoreCase))
@@ -548,7 +714,8 @@ public class QuizzesController : ControllerBase
                 correctCount,
                 incorrectCount,
                 attemptCount,
-                successRate
+                successRate,
+                optionBreakdown
             });
         }
 
@@ -690,6 +857,125 @@ public class QuizzesController : ControllerBase
         return Ok(new { message = "Gửi thắc mắc thành công", question = quizQuestion });
     }
 
+    [HttpGet("student-questions/all")]
+    [Authorize(Roles = "Admin,GiaoVien")]
+    public async Task<ActionResult> GetAllStudentQuestions()
+    {
+        var questions = await _context.QuizStudentQuestions
+            .Include(q => q.Quiz)
+            .Include(q => q.Student)
+            .OrderByDescending(q => q.CreatedAt)
+            .Select(q => new
+            {
+                q.Id,
+                q.QuizId,
+                QuizTitle = q.Quiz != null ? q.Quiz.Title : "Bài kiểm tra",
+                ClassId = q.Quiz != null ? q.Quiz.ClassId : 0,
+                q.StudentId,
+                StudentName = q.Student != null ? q.Student.FullName : "Học viên",
+                q.QuestionText,
+                q.CreatedAt,
+                q.AnswerText,
+                q.AnsweredAt
+            })
+            .ToListAsync();
+
+        return Ok(questions);
+    }
+
+    [HttpGet("student-questions/my-answered")]
+    [Authorize(Roles = "HocVien")]
+    public async Task<ActionResult> GetMyAnsweredQuestions()
+    {
+        var userIdStr = User.FindFirst("userId")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(userIdStr, out int userId))
+            return Forbid();
+
+        var student = await _context.Students.FirstOrDefaultAsync(s => s.UserId == userId);
+        if (student == null)
+            return Forbid();
+
+        var questions = await _context.QuizStudentQuestions
+            .Include(q => q.Quiz)
+            .Where(q => q.StudentId == student.StudentId && !string.IsNullOrEmpty(q.AnswerText))
+            .OrderByDescending(q => q.AnsweredAt)
+            .Select(q => new
+            {
+                q.Id,
+                q.QuizId,
+                QuizTitle = q.Quiz != null ? q.Quiz.Title : "Bài kiểm tra",
+                ClassId = q.Quiz != null ? q.Quiz.ClassId : 0,
+                q.QuestionText,
+                q.CreatedAt,
+                q.AnswerText,
+                q.AnsweredAt
+            })
+            .ToListAsync();
+
+        return Ok(questions);
+    }
+
+    [HttpGet("student-questions/my-all")]
+    [Authorize(Roles = "HocVien")]
+    public async Task<ActionResult> GetMyAllQuestions()
+    {
+        var userIdStr = User.FindFirst("userId")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(userIdStr, out int userId))
+            return Forbid();
+
+        var student = await _context.Students.FirstOrDefaultAsync(s => s.UserId == userId);
+        if (student == null)
+            return Forbid();
+
+        var questions = await _context.QuizStudentQuestions
+            .Include(q => q.Quiz)
+            .Where(q => q.StudentId == student.StudentId)
+            .OrderByDescending(q => q.CreatedAt)
+            .Select(q => new
+            {
+                q.Id,
+                q.QuizId,
+                QuizTitle = q.Quiz != null ? q.Quiz.Title : "Bài kiểm tra",
+                ClassId = q.Quiz != null ? q.Quiz.ClassId : 0,
+                q.QuestionText,
+                q.CreatedAt,
+                q.AnswerText,
+                q.AnsweredAt
+            })
+            .ToListAsync();
+
+        return Ok(questions);
+    }
+
+    [HttpPut("questions/{doubtId}/answer")]
+    [Authorize(Roles = "Admin,GiaoVien")]
+    public async Task<IActionResult> AnswerDoubt(int doubtId, [FromBody] AnswerDoubtDto dto)
+    {
+        var doubt = await _context.QuizStudentQuestions
+            .Include(d => d.Quiz)
+            .FirstOrDefaultAsync(d => d.Id == doubtId);
+
+        if (doubt == null)
+            return NotFound(new { message = "Không tìm thấy thắc mắc" });
+
+        var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        var userIdStr = User.FindFirst("userId")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (role == "GiaoVien" && int.TryParse(userIdStr, out int teacherId))
+        {
+            var classInfo = await _courseServiceClient.GetClassInfo(doubt.Quiz!.ClassId);
+            if (classInfo == null || classInfo.TeacherId != teacherId)
+                return Forbid();
+        }
+
+        doubt.AnswerText = dto.AnswerText;
+        doubt.AnsweredAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Trả lời thắc mắc thành công", doubt });
+    }
+
     [HttpGet("{id}/questions")]
     public async Task<ActionResult> GetStudentQuestions(int id)
     {
@@ -727,11 +1013,159 @@ public class QuizzesController : ControllerBase
                 q.StudentId,
                 StudentName = q.Student != null ? q.Student.FullName : "Chưa rõ",
                 q.QuestionText,
-                q.CreatedAt
+                q.CreatedAt,
+                q.AnswerText,
+                q.AnsweredAt
             })
             .ToListAsync();
 
         return Ok(questions);
+    }
+
+    [HttpGet("{id}/my-submission")]
+    [Authorize(Roles = "HocVien")]
+    public async Task<ActionResult> GetMySubmission(int id)
+    {
+        var userIdStr = User.FindFirst("userId")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(userIdStr, out int userId))
+            return Forbid();
+
+        var student = await _context.Students.FirstOrDefaultAsync(s => s.UserId == userId);
+        if (student == null)
+            return Forbid();
+
+        var submission = await _context.QuizSubmissions
+            .Include(s => s.Quiz)
+            .ThenInclude(q => q!.Questions)
+            .Where(s => s.QuizId == id && s.StudentId == student.StudentId)
+            .OrderByDescending(s => s.Score ?? 0)
+            .ThenByDescending(s => s.SubmittedAt)
+            .FirstOrDefaultAsync();
+
+        if (submission == null)
+            return NotFound(new { message = "Bạn chưa nộp bài làm cho bài kiểm tra này." });
+
+        var answers = new Dictionary<string, string>();
+        if (!string.IsNullOrEmpty(submission.AnswersJson))
+        {
+            try
+            {
+                answers = JsonSerializer.Deserialize<Dictionary<string, string>>(submission.AnswersJson) ?? new Dictionary<string, string>();
+            }
+            catch {}
+        }
+
+        var questionsList = submission.Quiz!.Questions.Select(q => new
+        {
+            q.QuestionId,
+            q.QuizId,
+            q.QuestionText,
+            q.Options,
+            q.CorrectAnswer
+        }).ToList();
+
+        return Ok(new
+        {
+            submission.SubmissionId,
+            submission.QuizId,
+            submission.EnrollmentId,
+            submission.StudentId,
+            submission.Score,
+            submission.TeacherNote,
+            submission.IsGraded,
+            submission.SubmittedAt,
+            answers,
+            questions = questionsList
+        });
+    }
+
+    [HttpPut("questions/{questionId}")]
+    [Authorize(Roles = "Admin,GiaoVien")]
+    public async Task<IActionResult> UpdateQuestion(int questionId, [FromBody] UpdateQuestionDto dto)
+    {
+        var question = await _context.QuizQuestions
+            .Include(q => q.Quiz)
+            .FirstOrDefaultAsync(q => q.QuestionId == questionId);
+
+        if (question == null)
+            return NotFound(new { message = "Không tìm thấy câu hỏi" });
+
+        var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        var userIdStr = User.FindFirst("userId")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (role == "GiaoVien" && int.TryParse(userIdStr, out int teacherId))
+        {
+            var classInfo = await _courseServiceClient.GetClassInfo(question.Quiz!.ClassId);
+            if (classInfo == null || classInfo.TeacherId != teacherId)
+                return Forbid();
+        }
+
+        question.QuestionText = dto.QuestionText;
+        question.Options = dto.Options;
+        question.CorrectAnswer = dto.CorrectAnswer;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Cập nhật câu hỏi thành công", question });
+    }
+
+    [HttpDelete("questions/{questionId}")]
+    [Authorize(Roles = "Admin,GiaoVien")]
+    public async Task<IActionResult> DeleteQuestion(int questionId)
+    {
+        var question = await _context.QuizQuestions
+            .Include(q => q.Quiz)
+            .FirstOrDefaultAsync(q => q.QuestionId == questionId);
+
+        if (question == null)
+            return NotFound(new { message = "Không tìm thấy câu hỏi" });
+
+        var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        var userIdStr = User.FindFirst("userId")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (role == "GiaoVien" && int.TryParse(userIdStr, out int teacherId))
+        {
+            var classInfo = await _courseServiceClient.GetClassInfo(question.Quiz!.ClassId);
+            if (classInfo == null || classInfo.TeacherId != teacherId)
+                return Forbid();
+        }
+
+        _context.QuizQuestions.Remove(question);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Xóa câu hỏi thành công" });
+    }
+
+    [HttpPost("{id}/questions-admin")]
+    [Authorize(Roles = "Admin,GiaoVien")]
+    public async Task<IActionResult> AddQuestion(int id, [FromBody] CreateQuestionDto dto)
+    {
+        var quiz = await _context.Quizzes.FindAsync(id);
+        if (quiz == null)
+            return NotFound(new { message = "Không tìm thấy bài kiểm tra" });
+
+        var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        var userIdStr = User.FindFirst("userId")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (role == "GiaoVien" && int.TryParse(userIdStr, out int teacherId))
+        {
+            var classInfo = await _courseServiceClient.GetClassInfo(quiz.ClassId);
+            if (classInfo == null || classInfo.TeacherId != teacherId)
+                return Forbid();
+        }
+
+        var newQuestion = new QuizQuestion
+        {
+            QuizId = id,
+            QuestionText = dto.QuestionText,
+            Options = dto.Options,
+            CorrectAnswer = dto.CorrectAnswer
+        };
+
+        _context.QuizQuestions.Add(newQuestion);
+        await _context.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(GetQuizById), new { id = quiz.QuizId }, new { message = "Thêm câu hỏi thành công", question = newQuestion });
     }
 }
 
@@ -750,6 +1184,7 @@ public class CreateQuizDto
     public string Title { get; set; } = string.Empty;
     public int DurationMinutes { get; set; }
     public string QuizType { get; set; } = "TracNghiem";
+    public int MaxAttempts { get; set; } = 1;
     public DateTime? LessonDate { get; set; }
     public List<CreateQuestionDto> Questions { get; set; } = new();
 }
@@ -775,4 +1210,22 @@ public class GradeDto
 public class CreateStudentQuestionDto
 {
     public string QuestionText { get; set; } = string.Empty;
+}
+
+public class UpdateQuestionDto
+{
+    public string QuestionText { get; set; } = string.Empty;
+    public string? Options { get; set; }
+    public string? CorrectAnswer { get; set; }
+}
+
+public class AnswerDoubtDto
+{
+    public string AnswerText { get; set; } = string.Empty;
+}
+
+public class SaveOfficialScoreDto
+{
+    public int StudentId { get; set; }
+    public decimal Score { get; set; }
 }

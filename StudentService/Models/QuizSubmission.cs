@@ -24,7 +24,6 @@ public class QuizSubmission
     [Column(TypeName = "decimal(5,2)")]
     public decimal? Score { get; set; }
 
-    [MaxLength(1000)]
     public string? TeacherNote { get; set; }
 
     public bool IsGraded { get; set; } = false;

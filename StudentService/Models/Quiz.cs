@@ -22,6 +22,8 @@ public class Quiz
     [MaxLength(50)]
     public string QuizType { get; set; } = "TracNghiem"; // TracNghiem, TuLuan
 
+    public int MaxAttempts { get; set; } = 1;
+
     public DateTime? LessonDate { get; set; }
 
     public bool IsActive { get; set; } = true;

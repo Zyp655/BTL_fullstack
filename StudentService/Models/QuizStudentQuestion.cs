@@ -21,6 +21,11 @@ public class QuizStudentQuestion
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    [MaxLength(2000)]
+    public string? AnswerText { get; set; }
+
+    public DateTime? AnsweredAt { get; set; }
+
     // Navigation
     [ForeignKey("QuizId")]
     public Quiz? Quiz { get; set; }
