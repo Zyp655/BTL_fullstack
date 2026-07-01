@@ -15,7 +15,6 @@ public static class StudentConflictHelper
         IEnumerable<int> activeClassIds)
     {
         return; // Allow student conflicts freely for test data
-    }
 
         foreach (var activeClassId in activeClassIds)
         {

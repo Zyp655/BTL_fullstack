@@ -24,7 +24,7 @@ public class EnrollmentsController : ControllerBase
     /// <summary>
     /// Danh sách đăng ký (filter by classId, studentId)
     /// </summary>
-    [Authorize(Roles = "Admin,GiaoVien")]
+    [Authorize(Roles = "Admin,GiaoVien,HocVien")]
     [HttpGet]
     public async Task<ActionResult<PagedResult<EnrollmentDto>>> GetEnrollments(
         [FromQuery] int? classId,
@@ -33,6 +33,18 @@ public class EnrollmentsController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
+        if (User.IsInRole("HocVien"))
+        {
+            var userId = int.Parse(User.FindFirst("userId")?.Value ?? "0");
+            var student = await _mediator.Send(new StudentService.Features.Students.Queries.GetStudentByUserIdQuery(userId));
+            
+            if (student == null) return Forbid();
+            if (studentId.HasValue && studentId.Value != student.StudentId) return Forbid();
+            
+            // Ép buộc học viên chỉ được xem của chính mình
+            studentId = student.StudentId;
+        }
+
         var result = await _mediator.Send(new GetEnrollmentsQuery(classId, studentId, status, page, pageSize));
         return Ok(result);
     }
