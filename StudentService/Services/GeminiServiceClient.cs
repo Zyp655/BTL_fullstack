@@ -10,7 +10,7 @@ namespace StudentService.Services;
 public class GeminiServiceClient : IAiServiceClient
 {
     private readonly HttpClient _httpClient;
-    private readonly string _apiKey;
+    private readonly List<string> _apiKeys;
     private readonly ILogger<GeminiServiceClient> _logger;
 
     // Try multiple models in order - if one hits rate limit, try next
@@ -27,20 +27,30 @@ public class GeminiServiceClient : IAiServiceClient
     {
         _httpClient = httpClient;
         _logger = logger;
-        // Fallback to environment variable if appsettings is empty
-        _apiKey = configuration["Gemini:ApiKey"] ?? string.Empty;
-        if (string.IsNullOrEmpty(_apiKey))
+        
+        var keyConfig = configuration["Gemini:ApiKey"] ?? string.Empty;
+        if (string.IsNullOrEmpty(keyConfig))
         {
-            _apiKey = System.Environment.GetEnvironmentVariable("GEMINI_API_KEY") ?? string.Empty;
+            keyConfig = System.Environment.GetEnvironmentVariable("GEMINI_API_KEY") ?? string.Empty;
+        }
+
+        _apiKeys = keyConfig.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries)
+                            .Select(k => k.Trim())
+                            .Where(k => !string.IsNullOrEmpty(k))
+                            .ToList();
+    }
+
+    private void EnsureKeysConfigured()
+    {
+        if (_apiKeys == null || _apiKeys.Count == 0)
+        {
+            throw new System.InvalidOperationException("Chưa cấu hình Gemini API Key. Vui lòng thiết lập key trong appsettings.json hoặc biến môi trường GEMINI_API_KEY.");
         }
     }
 
     public async Task<List<GeneratedQuestionDto>> GenerateQuestionsAsync(string content, string quizType, int questionCount)
     {
-        if (string.IsNullOrEmpty(_apiKey))
-        {
-            throw new System.InvalidOperationException("Chưa cấu hình Gemini API Key. Vui lòng thiết lập key trong appsettings.json hoặc biến môi trường GEMINI_API_KEY.");
-        }
+        EnsureKeysConfigured();
 
         // Build the JSON output format instructions directly in the prompt
         var jsonExample = quizType == "TracNghiem"
@@ -131,99 +141,100 @@ public class GeminiServiceClient : IAiServiceClient
 
         var json = JsonSerializer.Serialize(requestBody);
 
-        // Try each model with retry logic
+        // Try each key with each model
         string? lastError = null;
-        foreach (var model in FallbackModels)
+        foreach (var key in _apiKeys)
         {
-            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={_apiKey}";
-            _logger.LogInformation("Đang thử model {Model} để tạo bài kiểm tra. Số câu: {QuestionCount}, Loại: {QuizType}", model, questionCount, quizType);
-
-            // Try up to 2 times per model (with delay on retry)
-            for (int attempt = 1; attempt <= 2; attempt++)
+            foreach (var model in FallbackModels)
             {
-                var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync(url, httpContent);
+                var maskedKey = key.Length > 8 ? $"{key.Substring(0, 8)}..." : "Key";
+                var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}";
+                _logger.LogInformation("Đang thử model {Model} với Key {MaskedKey} để tạo bài kiểm tra. Số câu: {QuestionCount}, Loại: {QuizType}", model, maskedKey, questionCount, quizType);
 
-                if (response.IsSuccessStatusCode)
+                // Try up to 2 times per model (with delay on retry)
+                for (int attempt = 1; attempt <= 2; attempt++)
                 {
-                    var responseString = await response.Content.ReadAsStringAsync();
-                    _logger.LogInformation("Gemini API ({Model}) phản hồi thành công.", model);
-                    
-                    using var doc = JsonDocument.Parse(responseString);
-                    
-                    var textResult = doc.RootElement
-                        .GetProperty("candidates")[0]
-                        .GetProperty("content")
-                        .GetProperty("parts")[0]
-                        .GetProperty("text")
-                        .GetString();
+                    var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+                    var response = await _httpClient.PostAsync(url, httpContent);
 
-                    if (string.IsNullOrEmpty(textResult))
+                    if (response.IsSuccessStatusCode)
                     {
-                        _logger.LogWarning("Gemini API ({Model}) không trả về nội dung text.", model);
-                        return new List<GeneratedQuestionDto>();
-                    }
+                        var responseString = await response.Content.ReadAsStringAsync();
+                        _logger.LogInformation("Gemini API ({Model}) phản hồi thành công.", model);
+                        
+                        using var doc = JsonDocument.Parse(responseString);
+                        
+                        var textResult = doc.RootElement
+                            .GetProperty("candidates")[0]
+                            .GetProperty("content")
+                            .GetProperty("parts")[0]
+                            .GetProperty("text")
+                            .GetString();
 
-                    // Clean up markdown code fences if present
-                    textResult = textResult.Trim();
-                    if (textResult.StartsWith("```json"))
-                        textResult = textResult.Substring(7);
-                    else if (textResult.StartsWith("```"))
-                        textResult = textResult.Substring(3);
-                    if (textResult.EndsWith("```"))
-                        textResult = textResult.Substring(0, textResult.Length - 3);
-                    textResult = textResult.Trim();
-
-                    try
-                    {
-                        var questions = JsonSerializer.Deserialize<List<GeneratedQuestionDto>>(textResult, new JsonSerializerOptions
+                        if (string.IsNullOrEmpty(textResult))
                         {
-                            PropertyNameCaseInsensitive = true
-                        });
-                        return questions ?? new List<GeneratedQuestionDto>();
-                    }
-                    catch (JsonException ex)
-                    {
-                        _logger.LogError(ex, "Lỗi phân tích JSON từ kết quả Gemini ({Model}): {RawText}", model, textResult);
-                        throw;
-                    }
-                }
+                            _logger.LogWarning("Gemini API ({Model}) không trả về nội dung text.", model);
+                            return new List<GeneratedQuestionDto>();
+                        }
 
-                var errContent = await response.Content.ReadAsStringAsync();
-                lastError = errContent;
+                        // Clean up markdown code fences if present
+                        textResult = textResult.Trim();
+                        if (textResult.StartsWith("```json"))
+                            textResult = textResult.Substring(7);
+                        else if (textResult.StartsWith("```"))
+                            textResult = textResult.Substring(3);
+                        if (textResult.EndsWith("```"))
+                            textResult = textResult.Substring(0, textResult.Length - 3);
+                        textResult = textResult.Trim();
 
-                if ((int)response.StatusCode == 429)
-                {
-                    _logger.LogWarning("Model {Model} bị rate limit (lần thử {Attempt}/2). Chuyển sang model khác...", model, attempt);
-                    
-                    if (attempt == 1)
-                    {
-                        // Wait a bit before retry on same model
-                        await Task.Delay(2000);
-                        continue;
+                        try
+                        {
+                            var questions = JsonSerializer.Deserialize<List<GeneratedQuestionDto>>(textResult, new JsonSerializerOptions
+                            {
+                                PropertyNameCaseInsensitive = true
+                            });
+                            return questions ?? new List<GeneratedQuestionDto>();
+                        }
+                        catch (JsonException ex)
+                        {
+                            _logger.LogError(ex, "Lỗi phân tích JSON từ kết quả Gemini ({Model}): {RawText}", model, textResult);
+                            throw;
+                        }
                     }
-                    // Move to next model
-                    break;
-                }
-                else
-                {
-                    _logger.LogError("Gemini API ({Model}) trả về lỗi: {StatusCode} - {Error}", model, response.StatusCode, errContent);
-                    // For non-rate-limit errors, try next model
-                    break;
+
+                    var errContent = await response.Content.ReadAsStringAsync();
+                    lastError = errContent;
+
+                    if ((int)response.StatusCode == 429)
+                    {
+                        _logger.LogWarning("Model {Model} với Key {MaskedKey} bị rate limit (lần thử {Attempt}/2). Chuyển sang model/key khác...", model, maskedKey, attempt);
+                        
+                        if (attempt == 1)
+                        {
+                            // Wait a bit before retry on same model
+                            await Task.Delay(2000);
+                            continue;
+                        }
+                        // Move to next model
+                        break;
+                    }
+                    else
+                    {
+                        _logger.LogError("Gemini API ({Model}) với Key {MaskedKey} trả về lỗi: {StatusCode} - {Error}", model, maskedKey, response.StatusCode, errContent);
+                        // For non-rate-limit errors, try next model/key
+                        break;
+                    }
                 }
             }
         }
 
-        // All models exhausted
-        throw new HttpRequestException($"Tất cả các model Gemini đều bị lỗi. Lỗi cuối cùng: {lastError}");
+        // All models and keys exhausted
+        throw new HttpRequestException($"Tất cả các model/key Gemini đều bị lỗi. Lỗi cuối cùng: {lastError}");
     }
 
     public async Task<string> SummarizeQuizResultsAsync(string statisticsData)
     {
-        if (string.IsNullOrEmpty(_apiKey))
-        {
-            throw new System.InvalidOperationException("Chưa cấu hình Gemini API Key. Vui lòng thiết lập key trong appsettings.json hoặc biến môi trường GEMINI_API_KEY.");
-        }
+        EnsureKeysConfigured();
 
         var prompt = $"Dưới đây là thống kê kết quả làm bài kiểm tra của một lớp học:\n\n{statisticsData}\n\n" +
                      "Hãy đóng vai trò là một trợ lý giảng dạy AI xuất sắc. Hãy phân tích dữ liệu thống kê trên (tập trung vào điểm số trung bình, tỷ lệ câu trả lời đúng/sai của từng câu hỏi) và viết một bản tóm tắt ngắn gọn bằng tiếng Việt:\n" +
@@ -242,63 +253,64 @@ public class GeminiServiceClient : IAiServiceClient
 
         var json = JsonSerializer.Serialize(requestBody);
 
-        // Try each model with retry logic
+        // Try each key with each model
         string? lastError = null;
-        foreach (var model in FallbackModels)
+        foreach (var key in _apiKeys)
         {
-            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={_apiKey}";
-            _logger.LogInformation("Đang thử model {Model} để tóm tắt kết quả bài kiểm tra.", model);
-
-            for (int attempt = 1; attempt <= 2; attempt++)
+            foreach (var model in FallbackModels)
             {
-                var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync(url, httpContent);
+                var maskedKey = key.Length > 8 ? $"{key.Substring(0, 8)}..." : "Key";
+                var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}";
+                _logger.LogInformation("Đang thử model {Model} với Key {MaskedKey} để tóm tắt kết quả bài kiểm tra.", model, maskedKey);
 
-                if (response.IsSuccessStatusCode)
+                for (int attempt = 1; attempt <= 2; attempt++)
                 {
-                    var responseString = await response.Content.ReadAsStringAsync();
-                    using var doc = JsonDocument.Parse(responseString);
+                    var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+                    var response = await _httpClient.PostAsync(url, httpContent);
 
-                    var textResult = doc.RootElement
-                        .GetProperty("candidates")[0]
-                        .GetProperty("content")
-                        .GetProperty("parts")[0]
-                        .GetProperty("text")
-                        .GetString();
-
-                    return textResult ?? "Không thể tạo tóm tắt.";
-                }
-
-                var errContent = await response.Content.ReadAsStringAsync();
-                lastError = errContent;
-
-                if ((int)response.StatusCode == 429)
-                {
-                    _logger.LogWarning("Model {Model} bị rate limit khi tóm tắt (lần thử {Attempt}/2). Chuyển sang model khác...", model, attempt);
-                    if (attempt == 1)
+                    if (response.IsSuccessStatusCode)
                     {
-                        await Task.Delay(2000);
-                        continue;
+                        var responseString = await response.Content.ReadAsStringAsync();
+                        using var doc = JsonDocument.Parse(responseString);
+
+                        var textResult = doc.RootElement
+                            .GetProperty("candidates")[0]
+                            .GetProperty("content")
+                            .GetProperty("parts")[0]
+                            .GetProperty("text")
+                            .GetString();
+
+                        return textResult ?? "Không thể tạo tóm tắt.";
                     }
-                    break;
-                }
-                else
-                {
-                    _logger.LogError("Gemini API ({Model}) trả về lỗi khi tóm tắt: {StatusCode} - {Error}", model, response.StatusCode, errContent);
-                    break;
+
+                    var errContent = await response.Content.ReadAsStringAsync();
+                    lastError = errContent;
+
+                    if ((int)response.StatusCode == 429)
+                    {
+                        _logger.LogWarning("Model {Model} với Key {MaskedKey} bị rate limit khi tóm tắt (lần thử {Attempt}/2). Chuyển sang model/key khác...", model, maskedKey, attempt);
+                        if (attempt == 1)
+                        {
+                            await Task.Delay(2000);
+                            continue;
+                        }
+                        break;
+                    }
+                    else
+                    {
+                        _logger.LogError("Gemini API ({Model}) với Key {MaskedKey} trả về lỗi khi tóm tắt: {StatusCode} - {Error}", model, maskedKey, response.StatusCode, errContent);
+                        break;
+                    }
                 }
             }
         }
 
-        throw new HttpRequestException($"Tất cả các model Gemini đều bị lỗi. Lỗi cuối cùng: {lastError}");
+        throw new HttpRequestException($"Tất cả các model/key Gemini đều bị lỗi tóm tắt. Lỗi cuối cùng: {lastError}");
     }
 
     public async Task<CodingChallengeDto> GenerateCodingChallengeAsync(string topic, string language)
     {
-        if (string.IsNullOrEmpty(_apiKey))
-        {
-            throw new System.InvalidOperationException("Chưa cấu hình Gemini API Key. Vui lòng thiết lập key trong appsettings.json hoặc biến môi trường GEMINI_API_KEY.");
-        }
+        EnsureKeysConfigured();
 
         var prompt = $"Hãy sinh một đề bài lập trình (coding challenge) về chủ đề '{topic}' bằng ngôn ngữ '{language}' bằng tiếng Việt.\n\n" +
                      "Yêu cầu:\n" +
@@ -323,66 +335,67 @@ public class GeminiServiceClient : IAiServiceClient
         var json = JsonSerializer.Serialize(requestBody);
         string? lastError = null;
 
-        foreach (var model in FallbackModels)
+        foreach (var key in _apiKeys)
         {
-            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={_apiKey}";
-            _logger.LogInformation("Thử model {Model} để tạo Coding Challenge.", model);
-
-            try
+            foreach (var model in FallbackModels)
             {
-                var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync(url, httpContent);
+                var maskedKey = key.Length > 8 ? $"{key.Substring(0, 8)}..." : "Key";
+                var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}";
+                _logger.LogInformation("Thử model {Model} với Key {MaskedKey} để tạo Coding Challenge.", model, maskedKey);
 
-                if (response.IsSuccessStatusCode)
+                try
                 {
-                    var responseString = await response.Content.ReadAsStringAsync();
-                    using var doc = JsonDocument.Parse(responseString);
-                    var textResult = doc.RootElement
-                        .GetProperty("candidates")[0]
-                        .GetProperty("content")
-                        .GetProperty("parts")[0]
-                        .GetProperty("text")
-                        .GetString();
+                    var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+                    var response = await _httpClient.PostAsync(url, httpContent);
 
-                    if (!string.IsNullOrEmpty(textResult))
+                    if (response.IsSuccessStatusCode)
                     {
-                        textResult = textResult.Trim();
-                        if (textResult.StartsWith("```json"))
-                            textResult = textResult.Substring(7);
-                        else if (textResult.StartsWith("```"))
-                            textResult = textResult.Substring(3);
-                        if (textResult.EndsWith("```"))
-                            textResult = textResult.Substring(0, textResult.Length - 3);
-                        textResult = textResult.Trim();
+                        var responseString = await response.Content.ReadAsStringAsync();
+                        using var doc = JsonDocument.Parse(responseString);
+                        var textResult = doc.RootElement
+                            .GetProperty("candidates")[0]
+                            .GetProperty("content")
+                            .GetProperty("parts")[0]
+                            .GetProperty("text")
+                            .GetString();
 
-                        var challenge = JsonSerializer.Deserialize<CodingChallengeDto>(textResult, new JsonSerializerOptions
+                        if (!string.IsNullOrEmpty(textResult))
                         {
-                            PropertyNameCaseInsensitive = true
-                        });
-                        return challenge ?? new CodingChallengeDto();
+                            textResult = textResult.Trim();
+                            if (textResult.StartsWith("```json"))
+                                textResult = textResult.Substring(7);
+                            else if (textResult.StartsWith("```"))
+                                textResult = textResult.Substring(3);
+                            if (textResult.EndsWith("```"))
+                                textResult = textResult.Substring(0, textResult.Length - 3);
+                            textResult = textResult.Trim();
+
+                            var challenge = JsonSerializer.Deserialize<CodingChallengeDto>(textResult, new JsonSerializerOptions
+                            {
+                                PropertyNameCaseInsensitive = true
+                            });
+                            return challenge ?? new CodingChallengeDto();
+                        }
+                    }
+                    else
+                    {
+                        lastError = await response.Content.ReadAsStringAsync();
                     }
                 }
-                else
+                catch (Exception ex)
                 {
-                    lastError = await response.Content.ReadAsStringAsync();
+                    _logger.LogWarning(ex, "Lỗi khi dùng model {Model} với Key {MaskedKey} tạo Coding Challenge", model, maskedKey);
+                    lastError = ex.Message;
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Lỗi khi dùng model {Model} tạo Coding Challenge", model);
-                lastError = ex.Message;
             }
         }
 
-        throw new HttpRequestException($"Tất cả các model Gemini đều bị lỗi tạo đề bài. Lỗi cuối cùng: {lastError}");
+        throw new HttpRequestException($"Tất cả các model/key Gemini đều bị lỗi tạo đề bài. Lỗi cuối cùng: {lastError}");
     }
 
     public async Task<CodingGradeDto> GradeCodingChallengeAsync(string problemDescription, string solutionCode, string language)
     {
-        if (string.IsNullOrEmpty(_apiKey))
-        {
-            throw new System.InvalidOperationException("Chưa cấu hình Gemini API Key. Vui lòng thiết lập key trong appsettings.json hoặc biến môi trường GEMINI_API_KEY.");
-        }
+        EnsureKeysConfigured();
 
         var prompt = $"Hãy chấm điểm bài tập lập trình của học viên bằng tiếng Việt.\n\n" +
                      $"ĐỀ BÀI:\n{problemDescription}\n\n" +
@@ -411,58 +424,62 @@ public class GeminiServiceClient : IAiServiceClient
         var json = JsonSerializer.Serialize(requestBody);
         string? lastError = null;
 
-        foreach (var model in FallbackModels)
+        foreach (var key in _apiKeys)
         {
-            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={_apiKey}";
-            _logger.LogInformation("Thử model {Model} để chấm bài Coding Challenge.", model);
-
-            try
+            foreach (var model in FallbackModels)
             {
-                var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync(url, httpContent);
+                var maskedKey = key.Length > 8 ? $"{key.Substring(0, 8)}..." : "Key";
+                var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}";
+                _logger.LogInformation("Thử model {Model} với Key {MaskedKey} để chấm bài Coding Challenge.", model, maskedKey);
 
-                if (response.IsSuccessStatusCode)
+                try
                 {
-                    var responseString = await response.Content.ReadAsStringAsync();
-                    using var doc = JsonDocument.Parse(responseString);
-                    var textResult = doc.RootElement
-                        .GetProperty("candidates")[0]
-                        .GetProperty("content")
-                        .GetProperty("parts")[0]
-                        .GetProperty("text")
-                        .GetString();
+                    var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+                    var response = await _httpClient.PostAsync(url, httpContent);
 
-                    if (!string.IsNullOrEmpty(textResult))
+                    if (response.IsSuccessStatusCode)
                     {
-                        textResult = textResult.Trim();
-                        if (textResult.StartsWith("```json"))
-                            textResult = textResult.Substring(7);
-                        else if (textResult.StartsWith("```"))
-                            textResult = textResult.Substring(3);
-                        if (textResult.EndsWith("```"))
-                            textResult = textResult.Substring(0, textResult.Length - 3);
-                        textResult = textResult.Trim();
+                        var responseString = await response.Content.ReadAsStringAsync();
+                        using var doc = JsonDocument.Parse(responseString);
+                        var textResult = doc.RootElement
+                            .GetProperty("candidates")[0]
+                            .GetProperty("content")
+                            .GetProperty("parts")[0]
+                            .GetProperty("text")
+                            .GetString();
 
-                        var grade = JsonSerializer.Deserialize<CodingGradeDto>(textResult, new JsonSerializerOptions
+                        if (!string.IsNullOrEmpty(textResult))
                         {
-                            PropertyNameCaseInsensitive = true
-                        });
-                        return grade ?? new CodingGradeDto();
+                            textResult = textResult.Trim();
+                            if (textResult.StartsWith("```json"))
+                                textResult = textResult.Substring(7);
+                            else if (textResult.StartsWith("```"))
+                                textResult = textResult.Substring(3);
+                            if (textResult.EndsWith("```"))
+                                textResult = textResult.Substring(0, textResult.Length - 3);
+                            textResult = textResult.Trim();
+
+                            var grade = JsonSerializer.Deserialize<CodingGradeDto>(textResult, new JsonSerializerOptions
+                            {
+                                PropertyNameCaseInsensitive = true
+                            });
+                            return grade ?? new CodingGradeDto();
+                        }
+                    }
+                    else
+                    {
+                        lastError = await response.Content.ReadAsStringAsync();
                     }
                 }
-                else
+                catch (Exception ex)
                 {
-                    lastError = await response.Content.ReadAsStringAsync();
+                    _logger.LogWarning(ex, "Lỗi khi dùng model {Model} với Key {MaskedKey} chấm Coding Challenge", model, maskedKey);
+                    lastError = ex.Message;
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Lỗi khi dùng model {Model} chấm Coding Challenge", model);
-                lastError = ex.Message;
             }
         }
 
-        throw new HttpRequestException($"Tất cả các model Gemini đều bị lỗi chấm bài. Lỗi cuối cùng: {lastError}");
+        throw new HttpRequestException($"Tất cả các model/key Gemini đều bị lỗi chấm bài. Lỗi cuối cùng: {lastError}");
     }
 }
 
