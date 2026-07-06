@@ -19,6 +19,9 @@ public class Schedule
     public TimeSpan StartTime { get; set; }
     public TimeSpan EndTime { get; set; }
 
+    [MaxLength(50)]
+    public string? Room { get; set; }
+
     // Navigation
     [ForeignKey("ClassId")]
     public Class? Class { get; set; }

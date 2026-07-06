@@ -104,6 +104,50 @@ public class ClassroomsController : ControllerBase
     }
 
     /// <summary>
+    /// Lấy danh sách phòng học trống trong khoảng thời gian cụ thể
+    /// </summary>
+    [HttpGet("available")]
+    [AllowAnonymous]
+    public async Task<ActionResult<IEnumerable<ClassroomDto>>> GetAvailableClassrooms([FromQuery] int dayOfWeek, [FromQuery] string startTime, [FromQuery] string endTime, [FromQuery] int? excludeScheduleId = null)
+    {
+        if (!TimeSpan.TryParse(startTime, out var start) || !TimeSpan.TryParse(endTime, out var end))
+        {
+            return BadRequest(new { message = "Thời gian không hợp lệ. Vui lòng dùng định dạng HH:mm" });
+        }
+
+        var classrooms = await _context.Classrooms
+            .Where(r => !r.IsMaintenance)
+            .ToListAsync();
+
+        var conflictingSchedules = await _context.Schedules
+            .Include(s => s.Class)
+            .Where(s => s.DayOfWeek == dayOfWeek &&
+                        s.StartTime < end &&
+                        s.EndTime > start &&
+                        (!excludeScheduleId.HasValue || s.ScheduleId != excludeScheduleId.Value))
+            .ToListAsync();
+
+        var occupiedRooms = conflictingSchedules
+            .Select(s => !string.IsNullOrEmpty(s.Room) ? s.Room : s.Class.Room)
+            .Where(r => !string.IsNullOrEmpty(r))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var result = classrooms
+            .Where(r => !occupiedRooms.Any(or => MatchRoom(or, r.RoomNumber)))
+            .Select(r => new ClassroomDto
+            {
+                RoomNumber = r.RoomNumber,
+                IsMaintenance = r.IsMaintenance,
+                Notes = r.Notes,
+                Status = "Vacant"
+            })
+            .ToList();
+
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Tạo phòng học mới (Admin)
     /// </summary>
     [Authorize(Roles = "Admin")]

@@ -9,5 +9,6 @@ public record UpdateScheduleCommand(
     int DayOfWeek,
     string Session,
     string StartTime,
-    string EndTime
+    string EndTime,
+    string? Room = null
 ) : IRequest<ScheduleDto>;

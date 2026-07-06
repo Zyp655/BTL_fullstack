@@ -46,11 +46,13 @@ public class UpdateScheduleCommandHandler : IRequestHandler<UpdateScheduleComman
                 cls.StartDate, cls.EndDate, cls.TeacherName ?? "Giáo viên", schedule.ScheduleId);
         }
 
+        var scheduleRoom = string.IsNullOrWhiteSpace(request.Room) ? cls.Room : request.Room;
+
         // Check room conflict
-        if (!string.IsNullOrWhiteSpace(cls.Room))
+        if (!string.IsNullOrWhiteSpace(scheduleRoom))
         {
             await _conflictDetector.CheckRoomConflictAsync(
-                cls.Room, cls.ClassId, request.DayOfWeek, startTime, endTime, 
+                scheduleRoom, cls.ClassId, request.DayOfWeek, startTime, endTime, 
                 cls.StartDate, cls.EndDate, schedule.ScheduleId);
         }
 
@@ -58,6 +60,7 @@ public class UpdateScheduleCommandHandler : IRequestHandler<UpdateScheduleComman
         schedule.Session = request.Session;
         schedule.StartTime = startTime;
         schedule.EndTime = endTime;
+        schedule.Room = request.Room;
 
         _scheduleRepository.UpdateSchedule(schedule);
         await _scheduleRepository.SaveChangesAsync();

@@ -106,6 +106,7 @@ public class CreateScheduleDto
     public string Session { get; set; } = "Sang";
     public string StartTime { get; set; } = "08:00";
     public string EndTime { get; set; } = "10:00";
+    public string? Room { get; set; }
 }
 
 public class UpdateScheduleDto
@@ -114,6 +115,7 @@ public class UpdateScheduleDto
     public string Session { get; set; } = "Sang";
     public string StartTime { get; set; } = "08:00";
     public string EndTime { get; set; } = "10:00";
+    public string? Room { get; set; }
 }
 
 public class ScheduleDto
@@ -125,6 +127,7 @@ public class ScheduleDto
     public string Session { get; set; } = string.Empty;
     public string StartTime { get; set; } = string.Empty;
     public string EndTime { get; set; } = string.Empty;
+    public string? Room { get; set; }
 }
 
 // ===== Pagination =====

@@ -13,7 +13,8 @@ public static class ScheduleMapper
         DayOfWeekName = GetDayName(s.DayOfWeek),
         Session = s.Session,
         StartTime = s.StartTime.ToString(@"hh\:mm"),
-        EndTime = s.EndTime.ToString(@"hh\:mm")
+        EndTime = s.EndTime.ToString(@"hh\:mm"),
+        Room = s.Room
     };
 
     private static string GetDayName(int day) => day switch

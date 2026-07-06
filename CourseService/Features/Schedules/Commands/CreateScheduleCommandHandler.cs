@@ -43,11 +43,13 @@ public class CreateScheduleCommandHandler : IRequestHandler<CreateScheduleComman
                 cls.StartDate, cls.EndDate, cls.TeacherName ?? "Giáo viên");
         }
 
+        var scheduleRoom = string.IsNullOrWhiteSpace(request.Room) ? cls.Room : request.Room;
+
         // Check room conflict
-        if (!string.IsNullOrWhiteSpace(cls.Room))
+        if (!string.IsNullOrWhiteSpace(scheduleRoom))
         {
             await _conflictDetector.CheckRoomConflictAsync(
-                cls.Room, cls.ClassId, request.DayOfWeek, startTime, endTime, 
+                scheduleRoom, cls.ClassId, request.DayOfWeek, startTime, endTime, 
                 cls.StartDate, cls.EndDate);
         }
 
@@ -57,7 +59,8 @@ public class CreateScheduleCommandHandler : IRequestHandler<CreateScheduleComman
             DayOfWeek = request.DayOfWeek,
             Session = request.Session,
             StartTime = startTime,
-            EndTime = endTime
+            EndTime = endTime,
+            Room = request.Room
         };
 
         await _scheduleRepository.AddScheduleAsync(schedule);
