@@ -91,6 +91,8 @@ public class QuizzesController : ControllerBase
                 quiz.MaxAttempts,
                 quiz.LessonDate,
                 quiz.IsActive,
+                quiz.AvailableFrom,
+                quiz.AvailableTo,
                 quiz.CreatedAt,
                 AttemptsCount = studentSubmissions.Count,
                 HasSubmitted = studentSubmissions.Count > 0,
@@ -158,6 +160,8 @@ public class QuizzesController : ControllerBase
             quiz.MaxAttempts,
             quiz.LessonDate,
             quiz.IsActive,
+            quiz.AvailableFrom,
+            quiz.AvailableTo,
             quiz.CreatedAt,
             Questions = questionList
         });
@@ -186,6 +190,8 @@ public class QuizzesController : ControllerBase
             MaxAttempts = dto.MaxAttempts > 0 ? dto.MaxAttempts : 1,
             LessonDate = dto.LessonDate,
             IsActive = true,
+            AvailableFrom = dto.AvailableFrom,
+            AvailableTo = dto.AvailableTo,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -229,6 +235,55 @@ public class QuizzesController : ControllerBase
         return NoContent();
     }
 
+    [HttpPatch("{id}/toggle")]
+    [Authorize(Roles = "Admin,GiaoVien")]
+    public async Task<IActionResult> ToggleQuizActive(int id)
+    {
+        var quiz = await _context.Quizzes.FindAsync(id);
+        if (quiz == null)
+            return NotFound();
+
+        var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        var userIdStr = User.FindFirst("userId")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (role == "GiaoVien" && int.TryParse(userIdStr, out int toggleTeacherId))
+        {
+            var classInfo = await _courseServiceClient.GetClassInfo(quiz.ClassId);
+            if (classInfo == null || (classInfo.TeacherId != toggleTeacherId && classInfo.TeacherId2 != toggleTeacherId))
+                return Forbid();
+        }
+
+        quiz.IsActive = !quiz.IsActive;
+        await _context.SaveChangesAsync();
+
+        return Ok(new { quiz.QuizId, quiz.IsActive });
+    }
+
+    [HttpPatch("{id}/availability")]
+    [Authorize(Roles = "Admin,GiaoVien")]
+    public async Task<IActionResult> UpdateQuizAvailability(int id, [FromBody] UpdateAvailabilityDto dto)
+    {
+        var quiz = await _context.Quizzes.FindAsync(id);
+        if (quiz == null)
+            return NotFound();
+
+        var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        var userIdStr = User.FindFirst("userId")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (role == "GiaoVien" && int.TryParse(userIdStr, out int availTeacherId))
+        {
+            var classInfo = await _courseServiceClient.GetClassInfo(quiz.ClassId);
+            if (classInfo == null || (classInfo.TeacherId != availTeacherId && classInfo.TeacherId2 != availTeacherId))
+                return Forbid();
+        }
+
+        quiz.AvailableFrom = dto.AvailableFrom;
+        quiz.AvailableTo = dto.AvailableTo;
+        await _context.SaveChangesAsync();
+
+        return Ok(new { quiz.QuizId, quiz.AvailableFrom, quiz.AvailableTo });
+    }
+
     [HttpPost("{id}/submit")]
     [Authorize(Roles = "HocVien")]
     public async Task<IActionResult> SubmitQuizAnswers(int id, [FromBody] SubmitAnswersDto dto)
@@ -241,7 +296,13 @@ public class QuizzesController : ControllerBase
             return NotFound(new { message = "Không tìm thấy đề thi" });
 
         if (!quiz.IsActive)
-            return BadRequest(new { message = "Bài kiểm tra này đã bị đóng" });
+            return BadRequest(new { message = "Bài kiểm tra này đã bị khóa" });
+
+        var now = DateTime.UtcNow;
+        if (quiz.AvailableFrom.HasValue && now < quiz.AvailableFrom.Value)
+            return BadRequest(new { message = $"Bài kiểm tra này chưa mở. Thời gian mở: {quiz.AvailableFrom.Value:dd/MM/yyyy HH:mm}" });
+        if (quiz.AvailableTo.HasValue && now > quiz.AvailableTo.Value)
+            return BadRequest(new { message = $"Bài kiểm tra này đã hết hạn. Hạn nộp: {quiz.AvailableTo.Value:dd/MM/yyyy HH:mm}" });
 
         var userIdStr = User.FindFirst("userId")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (!int.TryParse(userIdStr, out int userId))
@@ -1186,6 +1247,8 @@ public class CreateQuizDto
     public string QuizType { get; set; } = "TracNghiem";
     public int MaxAttempts { get; set; } = 1;
     public DateTime? LessonDate { get; set; }
+    public DateTime? AvailableFrom { get; set; }
+    public DateTime? AvailableTo { get; set; }
     public List<CreateQuestionDto> Questions { get; set; } = new();
 }
 
@@ -1228,4 +1291,10 @@ public class SaveOfficialScoreDto
 {
     public int StudentId { get; set; }
     public decimal Score { get; set; }
+}
+
+public class UpdateAvailabilityDto
+{
+    public DateTime? AvailableFrom { get; set; }
+    public DateTime? AvailableTo { get; set; }
 }

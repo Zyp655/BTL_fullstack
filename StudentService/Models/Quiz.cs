@@ -28,6 +28,10 @@ public class Quiz
 
     public bool IsActive { get; set; } = true;
 
+    public DateTime? AvailableFrom { get; set; }
+
+    public DateTime? AvailableTo { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation
