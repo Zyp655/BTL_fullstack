@@ -28,10 +28,26 @@ public class QuizzesController : ControllerBase
         _courseServiceClient = courseServiceClient;
         try
         {
+            _context.Database.Migrate();
             _context.Database.ExecuteSqlRaw("IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Quizzes') AND name = 'MaxAttempts') ALTER TABLE Quizzes ADD MaxAttempts INT NOT NULL DEFAULT 1;");
             _context.Database.ExecuteSqlRaw("ALTER TABLE QuizSubmissions ALTER COLUMN TeacherNote NVARCHAR(MAX);");
         }
         catch { }
+    }
+
+    [HttpGet("migrate-db")]
+    [AllowAnonymous]
+    public async Task<IActionResult> MigrateDb()
+    {
+        try
+        {
+            await _context.Database.MigrateAsync();
+            return Ok("Database migrated successfully!");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Migration failed: {ex.Message}\n{ex.StackTrace}");
+        }
     }
 
     [HttpGet("class/{classId}")]
