@@ -44,7 +44,7 @@ public class QuizzesController : ControllerBase
         if (role == "GiaoVien" && int.TryParse(userIdStr, out int teacherId))
         {
             var classInfo = await _courseServiceClient.GetClassInfo(classId);
-            if (classInfo == null || classInfo.TeacherId != teacherId)
+            if (classInfo == null || (classInfo.TeacherId != teacherId && classInfo.TeacherId2 != teacherId))
                 return Forbid();
         }
         else if (role == "HocVien" && int.TryParse(userIdStr, out int userId))
@@ -119,7 +119,7 @@ public class QuizzesController : ControllerBase
         if (role == "GiaoVien" && int.TryParse(userIdStr, out int teacherId))
         {
             var classInfo = await _courseServiceClient.GetClassInfo(quiz.ClassId);
-            if (classInfo == null || classInfo.TeacherId != teacherId)
+            if (classInfo == null || (classInfo.TeacherId != teacherId && classInfo.TeacherId2 != teacherId))
                 return Forbid();
         }
         else if (role == "HocVien" && int.TryParse(userIdStr, out int userId))
@@ -173,7 +173,7 @@ public class QuizzesController : ControllerBase
         if (role == "GiaoVien" && int.TryParse(userIdStr, out int teacherId))
         {
             var classInfo = await _courseServiceClient.GetClassInfo(dto.ClassId);
-            if (classInfo == null || classInfo.TeacherId != teacherId)
+            if (classInfo == null || (classInfo.TeacherId != teacherId && classInfo.TeacherId2 != teacherId))
                 return Forbid();
         }
 
@@ -219,7 +219,7 @@ public class QuizzesController : ControllerBase
         if (role == "GiaoVien" && int.TryParse(userIdStr, out int teacherId))
         {
             var classInfo = await _courseServiceClient.GetClassInfo(quiz.ClassId);
-            if (classInfo == null || classInfo.TeacherId != teacherId)
+            if (classInfo == null || (classInfo.TeacherId != teacherId && classInfo.TeacherId2 != teacherId))
                 return Forbid();
         }
 
@@ -356,7 +356,7 @@ public class QuizzesController : ControllerBase
         if (role == "GiaoVien" && int.TryParse(userIdStr, out int teacherId))
         {
             var classInfo = await _courseServiceClient.GetClassInfo(quiz.ClassId);
-            if (classInfo == null || classInfo.TeacherId != teacherId)
+            if (classInfo == null || (classInfo.TeacherId != teacherId && classInfo.TeacherId2 != teacherId))
                 return Forbid();
         }
 
@@ -412,7 +412,7 @@ public class QuizzesController : ControllerBase
         if (role == "GiaoVien" && currentTeacherId.HasValue)
         {
             var classInfo = await _courseServiceClient.GetClassInfo(submission.Quiz!.ClassId);
-            if (classInfo == null || classInfo.TeacherId != currentTeacherId.Value)
+            if (classInfo == null || (classInfo.TeacherId != currentTeacherId.Value && classInfo.TeacherId2 != currentTeacherId.Value))
                 return Forbid();
         }
 
@@ -964,7 +964,7 @@ public class QuizzesController : ControllerBase
         if (role == "GiaoVien" && int.TryParse(userIdStr, out int teacherId))
         {
             var classInfo = await _courseServiceClient.GetClassInfo(doubt.Quiz!.ClassId);
-            if (classInfo == null || classInfo.TeacherId != teacherId)
+            if (classInfo == null || (classInfo.TeacherId != teacherId && classInfo.TeacherId2 != teacherId))
                 return Forbid();
         }
 
@@ -989,7 +989,7 @@ public class QuizzesController : ControllerBase
         if (role == "GiaoVien" && int.TryParse(userIdStr, out int teacherId))
         {
             var classInfo = await _courseServiceClient.GetClassInfo(quiz.ClassId);
-            if (classInfo == null || classInfo.TeacherId != teacherId)
+            if (classInfo == null || (classInfo.TeacherId != teacherId && classInfo.TeacherId2 != teacherId))
                 return Forbid();
         }
         else if (role == "HocVien" && int.TryParse(userIdStr, out int userId))
@@ -1096,7 +1096,7 @@ public class QuizzesController : ControllerBase
         if (role == "GiaoVien" && int.TryParse(userIdStr, out int teacherId))
         {
             var classInfo = await _courseServiceClient.GetClassInfo(question.Quiz!.ClassId);
-            if (classInfo == null || classInfo.TeacherId != teacherId)
+            if (classInfo == null || (classInfo.TeacherId != teacherId && classInfo.TeacherId2 != teacherId))
                 return Forbid();
         }
 
@@ -1126,7 +1126,7 @@ public class QuizzesController : ControllerBase
         if (role == "GiaoVien" && int.TryParse(userIdStr, out int teacherId))
         {
             var classInfo = await _courseServiceClient.GetClassInfo(question.Quiz!.ClassId);
-            if (classInfo == null || classInfo.TeacherId != teacherId)
+            if (classInfo == null || (classInfo.TeacherId != teacherId && classInfo.TeacherId2 != teacherId))
                 return Forbid();
         }
 
@@ -1150,7 +1150,7 @@ public class QuizzesController : ControllerBase
         if (role == "GiaoVien" && int.TryParse(userIdStr, out int teacherId))
         {
             var classInfo = await _courseServiceClient.GetClassInfo(quiz.ClassId);
-            if (classInfo == null || classInfo.TeacherId != teacherId)
+            if (classInfo == null || (classInfo.TeacherId != teacherId && classInfo.TeacherId2 != teacherId))
                 return Forbid();
         }
 

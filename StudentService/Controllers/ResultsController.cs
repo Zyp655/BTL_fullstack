@@ -62,7 +62,7 @@ public class ResultsController : ControllerBase
                 return BadRequest(new { message = "Không tìm thấy bản ghi đăng ký" });
             }
             var classInfo = await _courseServiceClient.GetClassInfo(enrollment.ClassId);
-            if (classInfo == null || classInfo.TeacherId != teacherId)
+            if (classInfo == null || (classInfo.TeacherId != teacherId && classInfo.TeacherId2 != teacherId))
             {
                 return Forbid();
             }
@@ -95,7 +95,7 @@ public class ResultsController : ControllerBase
                 return BadRequest(new { message = "Không tìm thấy bản ghi đăng ký" });
             }
             var classInfo = await _courseServiceClient.GetClassInfo(enrollment.ClassId);
-            if (classInfo == null || classInfo.TeacherId != teacherId)
+            if (classInfo == null || (classInfo.TeacherId != teacherId && classInfo.TeacherId2 != teacherId))
             {
                 return Forbid();
             }
@@ -122,7 +122,7 @@ public class ResultsController : ControllerBase
         if (role == "GiaoVien" && !string.IsNullOrEmpty(userIdStr) && int.TryParse(userIdStr, out int teacherId))
         {
             var classInfo = await _courseServiceClient.GetClassInfo(classId);
-            if (classInfo == null || classInfo.TeacherId != teacherId)
+            if (classInfo == null || (classInfo.TeacherId != teacherId && classInfo.TeacherId2 != teacherId))
             {
                 return Forbid();
             }

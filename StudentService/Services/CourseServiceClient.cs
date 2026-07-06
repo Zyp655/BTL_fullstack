@@ -70,6 +70,8 @@ public class ClassInfoDto
     public string CourseName { get; set; } = string.Empty;
     public int? TeacherId { get; set; }
     public string? TeacherName { get; set; }
+    public int? TeacherId2 { get; set; }
+    public string? TeacherName2 { get; set; }
     public int MaxStudents { get; set; }
     public int CurrentStudents { get; set; }
     public string Status { get; set; } = string.Empty;

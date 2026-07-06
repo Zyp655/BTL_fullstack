@@ -42,7 +42,7 @@ public class AttendancesController : ControllerBase
         if (role == "GiaoVien" && !string.IsNullOrEmpty(userIdStr) && int.TryParse(userIdStr, out int teacherId))
         {
             var classInfo = await _courseServiceClient.GetClassInfo(classId);
-            if (classInfo == null || classInfo.TeacherId != teacherId)
+            if (classInfo == null || (classInfo.TeacherId != teacherId && classInfo.TeacherId2 != teacherId))
             {
                 return Forbid();
             }
@@ -65,7 +65,7 @@ public class AttendancesController : ControllerBase
         if (role == "GiaoVien" && !string.IsNullOrEmpty(userIdStr) && int.TryParse(userIdStr, out int teacherId))
         {
             var classInfo = await _courseServiceClient.GetClassInfo(classId);
-            if (classInfo == null || classInfo.TeacherId != teacherId)
+            if (classInfo == null || (classInfo.TeacherId != teacherId && classInfo.TeacherId2 != teacherId))
             {
                 return Forbid();
             }
@@ -88,7 +88,7 @@ public class AttendancesController : ControllerBase
         if (role == "GiaoVien" && !string.IsNullOrEmpty(userIdStr) && int.TryParse(userIdStr, out int teacherId))
         {
             var classInfo = await _courseServiceClient.GetClassInfo(command.ClassId);
-            if (classInfo == null || classInfo.TeacherId != teacherId)
+            if (classInfo == null || (classInfo.TeacherId != teacherId && classInfo.TeacherId2 != teacherId))
             {
                 return Forbid();
             }

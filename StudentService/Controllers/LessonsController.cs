@@ -36,7 +36,7 @@ public class LessonsController : ControllerBase
         if (role == "GiaoVien" && int.TryParse(userIdStr, out int teacherId))
         {
             var classInfo = await _courseServiceClient.GetClassInfo(classId);
-            if (classInfo == null || classInfo.TeacherId != teacherId)
+            if (classInfo == null || (classInfo.TeacherId != teacherId && classInfo.TeacherId2 != teacherId))
                 return Forbid();
         }
         else if (role == "HocVien" && int.TryParse(userIdStr, out int userId))
@@ -79,7 +79,7 @@ public class LessonsController : ControllerBase
         if (role == "GiaoVien" && int.TryParse(userIdStr, out int teacherId))
         {
             var classInfo = await _courseServiceClient.GetClassInfo(lesson.ClassId);
-            if (classInfo == null || classInfo.TeacherId != teacherId)
+            if (classInfo == null || (classInfo.TeacherId != teacherId && classInfo.TeacherId2 != teacherId))
                 return Forbid();
         }
         else if (role == "HocVien" && int.TryParse(userIdStr, out int userId))
@@ -108,7 +108,7 @@ public class LessonsController : ControllerBase
         if (role == "GiaoVien" && int.TryParse(userIdStr, out int teacherId))
         {
             var classInfo = await _courseServiceClient.GetClassInfo(classId);
-            if (classInfo == null || classInfo.TeacherId != teacherId)
+            if (classInfo == null || (classInfo.TeacherId != teacherId && classInfo.TeacherId2 != teacherId))
                 return Forbid();
         }
         else if (role == "HocVien" && int.TryParse(userIdStr, out int userId))
@@ -140,7 +140,7 @@ public class LessonsController : ControllerBase
         if (role == "GiaoVien" && int.TryParse(userIdStr, out int teacherId))
         {
             var classInfo = await _courseServiceClient.GetClassInfo(dto.ClassId);
-            if (classInfo == null || classInfo.TeacherId != teacherId)
+            if (classInfo == null || (classInfo.TeacherId != teacherId && classInfo.TeacherId2 != teacherId))
                 return Forbid();
         }
 
@@ -187,7 +187,7 @@ public class LessonsController : ControllerBase
         if (role == "GiaoVien" && int.TryParse(userIdStr, out int teacherId))
         {
             var classInfo = await _courseServiceClient.GetClassInfo(lesson.ClassId);
-            if (classInfo == null || classInfo.TeacherId != teacherId)
+            if (classInfo == null || (classInfo.TeacherId != teacherId && classInfo.TeacherId2 != teacherId))
                 return Forbid();
         }
 
