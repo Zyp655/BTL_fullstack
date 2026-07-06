@@ -97,6 +97,13 @@ public class GeminiServiceClient : IAiServiceClient
         foreach (var key in _apiKeys)
         {
             var isGroq = key.StartsWith("gsk_");
+            
+            if (isGroq && content.Contains("data:") && content.Contains(";base64,"))
+            {
+                _logger.LogInformation("Nội dung chứa file đính kèm Base64, bỏ qua Groq và sử dụng Gemini.");
+                continue;
+            }
+
             var models = isGroq ? GroqFallbackModels : FallbackModels;
             var maskedKey = key.Length > 8 ? $"{key.Substring(0, 8)}..." : "Key";
 
