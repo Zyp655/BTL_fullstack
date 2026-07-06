@@ -34,6 +34,19 @@ public class GeminiServiceClient : IAiServiceClient
             keyConfig = System.Environment.GetEnvironmentVariable("GEMINI_API_KEY") ?? string.Empty;
         }
 
+        if (!string.IsNullOrEmpty(keyConfig) && !keyConfig.StartsWith("AIzaSy") && !keyConfig.StartsWith("AQ."))
+        {
+            try
+            {
+                var bytes = Convert.FromBase64String(keyConfig);
+                keyConfig = System.Text.Encoding.UTF8.GetString(bytes);
+            }
+            catch
+            {
+                // Ignore base64 decode failures
+            }
+        }
+
         _apiKeys = keyConfig.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries)
                             .Select(k => k.Trim())
                             .Where(k => !string.IsNullOrEmpty(k))
